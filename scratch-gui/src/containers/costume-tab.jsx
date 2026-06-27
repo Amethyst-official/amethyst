@@ -12,6 +12,7 @@ import DragConstants from '../lib/drag-constants';
 import {showStandardAlert, closeAlertWithId} from '../reducers/alerts';
 import fileUploadIcon from '../components/action-menu/icon--file-upload.svg';
 import downloadBlob from '../lib/download-blob';
+import ModelPreview from '../components/stage-3d/model-preview.jsx';
 
 const messages = defineMessages({
     addFileModelMsg: {
@@ -55,11 +56,16 @@ class CostumeTab extends React.Component {
             'handleBackgroundFileUpload',
             'handleBackgroundModeChange',
             'handleBackgroundUploadClick',
+            'handleCameraFovChange',
+            'handleCameraVectorInput',
+            'handleCameraVectorChange',
             'handleSkyColorChange',
             'handleDeleteModel',
             'handleExportModel',
             'handleFileUploadClick',
             'handleModelUpload',
+            'handlePivotChange',
+            'handlePivotInput',
             'handleSelectModel',
             'refreshLocalView',
             'setBackgroundFileInput',
@@ -89,6 +95,20 @@ class CostumeTab extends React.Component {
                 imageName: null
             };
         }
+        if (!runtime.scratch3dScene.camera) {
+            runtime.scratch3dScene.camera = {
+                position: {x: 260, y: 180, z: 420},
+                target: {x: 0, y: 20, z: 0},
+                fov: 55
+            };
+        }
+        if (!runtime.scratch3dScene.lighting) {
+            runtime.scratch3dScene.lighting = {
+                ambient: 1.6,
+                key: 1.2,
+                keyPosition: {x: 180, y: 320, z: 240}
+            };
+        }
         return runtime.scratch3dScene;
     }
     updateScene3D (updater) {
@@ -112,6 +132,24 @@ class CostumeTab extends React.Component {
         this.updateScene3D(scene => {
             scene.background.mode = 'sky';
             scene.background.skyColor = color;
+        });
+    }
+    handleCameraVectorChange (field, axis, e) {
+        const value = Number(e.target.value);
+        this.updateScene3D(scene => {
+            scene.camera[field] = {
+                ...(scene.camera[field] || {}),
+                [axis]: value
+            };
+        });
+    }
+    handleCameraVectorInput (e) {
+        this.handleCameraVectorChange(e.currentTarget.dataset.field, e.currentTarget.dataset.axis, e);
+    }
+    handleCameraFovChange (e) {
+        const value = Number(e.target.value);
+        this.updateScene3D(scene => {
+            scene.camera.fov = Math.min(120, Math.max(15, value));
         });
     }
     handleBackgroundUploadClick () {
@@ -159,6 +197,19 @@ class CostumeTab extends React.Component {
         target.runtime.requestTargetsUpdate(target);
         this.refreshLocalView();
     }
+    handlePivotChange (axis, e) {
+        const target = this.props.vm.editingTarget;
+        if (!target || target.isStage) return;
+        const pivot = {
+            ...(target.modelPivot || {x: 0, y: 0, z: 0}),
+            [axis]: Number(e.target.value)
+        };
+        target.setModelPivot(pivot);
+        this.refreshLocalView();
+    }
+    handlePivotInput (e) {
+        this.handlePivotChange(e.currentTarget.dataset.axis, e);
+    }
     handleModelUpload (e) {
         const file = e.target.files && e.target.files[0];
         e.target.value = '';
@@ -190,25 +241,38 @@ class CostumeTab extends React.Component {
         };
         reader.readAsDataURL(file);
     }
-    handleSelectModel () {
-        // AssetPanel expects an item click handler. The selected actor owns exactly one model for now.
-    }
-    handleDeleteModel () {
+    handleSelectModel (index) {
         const target = this.props.vm.editingTarget;
-        if (!target || target.isStage) return;
-        target.modelAssetId = null;
-        target.modelAssetName = null;
-        target.modelAssetDataUri = null;
-        target.attachmentPoints = {};
-        target.runtime.requestTargetsUpdate(target);
+        if (!target || target.isStage || !target.setModelCostume) return;
+        target.setModelCostume(index);
         this.refreshLocalView();
     }
-    handleExportModel () {
+    handleDeleteModel (index) {
         const target = this.props.vm.editingTarget;
-        if (!target || !target.modelAssetDataUri) return;
-        fetch(target.modelAssetDataUri)
+        if (!target || target.isStage) return;
+        if (target.deleteModelCostume) {
+            target.deleteModelCostume(index);
+        } else {
+            target.modelAssetId = null;
+            target.modelAssetName = null;
+            target.modelAssetDataUri = null;
+            target.attachmentPoints = {};
+            target.runtime.requestTargetsUpdate(target);
+        }
+        this.refreshLocalView();
+    }
+    handleExportModel (index) {
+        const target = this.props.vm.editingTarget;
+        const models = (target && target.modelCostumes && target.modelCostumes.length) ?
+            target.modelCostumes : [];
+        const model = models[index] || models[target.currentModelCostume || 0] || {
+            name: target && target.modelAssetName,
+            dataUri: target && target.modelAssetDataUri
+        };
+        if (!model || !model.dataUri) return;
+        fetch(model.dataUri)
             .then(response => response.blob())
-            .then(blob => downloadBlob(target.modelAssetName || 'model.glb', blob));
+            .then(blob => downloadBlob(model.name || 'model.glb', blob));
     }
     handleFileUploadClick () {
         if (this.fileInput) {
@@ -236,6 +300,32 @@ class CostumeTab extends React.Component {
         if (vm.editingTarget.isStage) {
             const scene = this.getScene3D();
             const background = scene.background || {};
+            const camera = scene.camera || {};
+            const cameraPosition = camera.position || {x: 260, y: 180, z: 420};
+            const cameraTarget = camera.target || {x: 0, y: 20, z: 0};
+            const cameraInput = (label, field, axis, value) => (
+                <label
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.2rem'
+                    }}
+                >
+                    {label}
+                    <input
+                        style={{
+                            border: '1px solid #c9ccd8',
+                            borderRadius: '0.25rem',
+                            padding: '0.35rem'
+                        }}
+                        data-axis={axis}
+                        data-field={field}
+                        type="number"
+                        value={value}
+                        onChange={this.handleCameraVectorInput}
+                    />
+                </label>
+            );
             return (
                 <Box
                     style={{
@@ -246,65 +336,150 @@ class CostumeTab extends React.Component {
                         flexGrow: 1,
                         fontSize: '0.9rem',
                         fontWeight: 600,
-                        gap: '0.75rem',
+                        gap: '1rem',
                         justifyContent: 'flex-start',
-                        padding: '2rem',
+                        overflow: 'auto',
+                        padding: '1.5rem',
                         textAlign: 'left'
                     }}
                 >
-                    <Box>{intl.formatMessage(messages.stageSkyBackgroundMsg)}</Box>
-                    <label>
-                        {'Mode '}
-                        <select
-                            value={background.mode || 'sky'}
-                            onChange={this.handleBackgroundModeChange}
-                        >
-                            <option value="sky">{'Generated sky'}</option>
-                            <option value="image">{'Drawn / panorama image'}</option>
-                            <option value="hdri">{'HDRI lighting'}</option>
-                        </select>
-                    </label>
-                    <label>
-                        {'Sky color '}
-                        <input
-                            type="color"
-                            value={background.skyColor || '#8fc6ff'}
-                            onChange={this.handleSkyColorChange}
-                        />
-                    </label>
-                    <button
-                        type="button"
-                        onClick={this.handleBackgroundUploadClick}
-                    >
-                        {'Upload Background / HDRI'}
-                    </button>
-                    <input
-                        accept=".hdr,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-                        ref={this.setBackgroundFileInput}
-                        style={{display: 'none'}}
-                        type="file"
-                        onChange={this.handleBackgroundFileUpload}
-                    />
                     <Box
                         style={{
-                            color: '#6b7280',
-                            fontSize: '0.78rem',
-                            fontWeight: 500
+                            display: 'grid',
+                            gap: '1rem',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))'
                         }}
                     >
-                        {background.imageName || 'No custom background uploaded'}
+                        <Box
+                            style={{
+                                border: '1px solid #d9dce8',
+                                borderRadius: '0.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem',
+                                padding: '1rem'
+                            }}
+                        >
+                            <Box>{intl.formatMessage(messages.stageSkyBackgroundMsg)}</Box>
+                            <label>
+                                {'Mode '}
+                                <select
+                                    value={background.mode || 'sky'}
+                                    onChange={this.handleBackgroundModeChange}
+                                >
+                                    <option value="sky">{'Generated sky'}</option>
+                                    <option value="image">{'Drawn / panorama image'}</option>
+                                    <option value="hdri">{'HDRI lighting'}</option>
+                                </select>
+                            </label>
+                            <label>
+                                {'Sky color '}
+                                <input
+                                    type="color"
+                                    value={background.skyColor || '#8fc6ff'}
+                                    onChange={this.handleSkyColorChange}
+                                />
+                            </label>
+                            <button
+                                type="button"
+                                onClick={this.handleBackgroundUploadClick}
+                            >
+                                {'Upload Background / HDRI'}
+                            </button>
+                            <input
+                                accept=".hdr,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                                ref={this.setBackgroundFileInput}
+                                style={{display: 'none'}}
+                                type="file"
+                                onChange={this.handleBackgroundFileUpload}
+                            />
+                            <Box
+                                style={{
+                                    color: '#6b7280',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 500
+                                }}
+                            >
+                                {background.imageName || 'No custom background uploaded'}
+                            </Box>
+                        </Box>
+                        <Box
+                            style={{
+                                border: '1px solid #d9dce8',
+                                borderRadius: '0.5rem',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem',
+                                padding: '1rem'
+                            }}
+                        >
+                            <Box>{'Camera'}</Box>
+                            <Box
+                                style={{
+                                    display: 'grid',
+                                    gap: '0.55rem',
+                                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'
+                                }}
+                            >
+                                {cameraInput('X', 'position', 'x', cameraPosition.x)}
+                                {cameraInput('Y', 'position', 'y', cameraPosition.y)}
+                                {cameraInput('Z', 'position', 'z', cameraPosition.z)}
+                            </Box>
+                            <Box
+                                style={{
+                                    color: '#6b7280',
+                                    fontSize: '0.78rem'
+                                }}
+                            >
+                                {'Camera target'}
+                            </Box>
+                            <Box
+                                style={{
+                                    display: 'grid',
+                                    gap: '0.55rem',
+                                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'
+                                }}
+                            >
+                                {cameraInput('X', 'target', 'x', cameraTarget.x)}
+                                {cameraInput('Y', 'target', 'y', cameraTarget.y)}
+                                {cameraInput('Z', 'target', 'z', cameraTarget.z)}
+                            </Box>
+                            <label>
+                                {'Field of view '}
+                                <input
+                                    max="120"
+                                    min="15"
+                                    type="range"
+                                    value={camera.fov || 55}
+                                    onChange={this.handleCameraFovChange}
+                                />
+                                {` ${Math.round(camera.fov || 55)} deg`}
+                            </label>
+                        </Box>
                     </Box>
                 </Box>
             );
         }
 
-        const modelName = vm.editingTarget.modelAssetName ||
+        const targetModels = (vm.editingTarget.modelCostumes && vm.editingTarget.modelCostumes.length) ?
+            vm.editingTarget.modelCostumes : (vm.editingTarget.modelAssetId ? [{
+                id: vm.editingTarget.modelAssetId,
+                name: vm.editingTarget.modelAssetName,
+                dataUri: vm.editingTarget.modelAssetDataUri
+            }] : []);
+        const selectedModelIndex = Math.min(
+            targetModels.length - 1,
+            Math.max(0, vm.editingTarget.currentModelCostume || 0)
+        );
+        const selectedModel = targetModels[selectedModelIndex] || null;
+        const modelPivot = vm.editingTarget.modelPivot || {x: 0, y: 0, z: 0};
+        const modelName = (selectedModel && selectedModel.name) ||
             intl.formatMessage(messages.noModelMsg);
-        const modelData = vm.editingTarget.modelAssetId ? [{
-            name: modelName,
+        const modelData = targetModels.map((model, index) => ({
+            name: model.name || `Model ${index + 1}`,
             details: intl.formatMessage(messages.modelDetailsMsg),
             dragPayload: null
-        }] : [];
+        }));
 
         return (
             <AssetPanel
@@ -319,9 +494,9 @@ class CostumeTab extends React.Component {
                 isRtl={isRtl}
                 items={modelData}
                 key={editingTarget}
-                selectedItemIndex={0}
-                onDeleteClick={vm.editingTarget.modelAssetId ? this.handleDeleteModel : null}
-                onExportClick={vm.editingTarget.modelAssetId ? this.handleExportModel : null}
+                selectedItemIndex={selectedModelIndex}
+                onDeleteClick={targetModels.length ? this.handleDeleteModel : null}
+                onExportClick={targetModels.length ? this.handleExportModel : null}
                 onItemClick={this.handleSelectModel}
             >
                 <input
@@ -333,20 +508,26 @@ class CostumeTab extends React.Component {
                 />
                 <Box
                     style={{
-                        alignItems: 'center',
+                        alignItems: 'stretch',
                         display: 'flex',
                         flexDirection: 'column',
                         flexGrow: 1,
-                        justifyContent: 'center',
-                        padding: '2rem',
-                        textAlign: 'center'
+                        gap: '1rem',
+                        justifyContent: 'flex-start',
+                        overflow: 'auto',
+                        padding: '1rem',
+                        textAlign: 'left'
                     }}
                 >
+                    <ModelPreview
+                        modelDataUri={selectedModel && selectedModel.dataUri}
+                        modelName={modelName}
+                    />
                     <Box
                         style={{
                             fontSize: '1rem',
                             fontWeight: 700,
-                            marginBottom: '0.5rem'
+                            textAlign: 'center'
                         }}
                     >
                         {modelName}
@@ -354,53 +535,104 @@ class CostumeTab extends React.Component {
                     <Box
                         style={{
                             color: '#575e75',
-                            fontSize: '0.8rem'
+                            fontSize: '0.8rem',
+                            textAlign: 'center'
                         }}
                     >
-                        {vm.editingTarget.modelAssetId ?
+                        {selectedModel ?
                             intl.formatMessage(messages.modelDetailsMsg) :
                             intl.formatMessage(messages.uploadModelPromptMsg)}
                     </Box>
                     <Box
                         style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.5rem',
-                            marginTop: '1.25rem',
-                            minWidth: '14rem',
-                            textAlign: 'left'
+                            border: '1px solid #d9dce8',
+                            borderRadius: '0.5rem',
+                            display: 'grid',
+                            gap: '0.75rem',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))',
+                            padding: '1rem'
                         }}
                     >
                         <Box
                             style={{
-                                fontSize: '0.85rem',
-                                fontWeight: 700
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.5rem'
                             }}
                         >
-                            {'Simple Model Editor'}
+                            <Box
+                                style={{
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700
+                                }}
+                            >
+                                {'Transform'}
+                            </Box>
+                            <label>
+                                {'Scale '}
+                                <input
+                                    max="300"
+                                    min="10"
+                                    type="range"
+                                    value={vm.editingTarget.size || 100}
+                                    onChange={this.handleActorSizeChange}
+                                />
+                                {` ${Math.round(vm.editingTarget.size || 100)}%`}
+                            </label>
+                            <label>
+                                {'Yaw '}
+                                <input
+                                    max="180"
+                                    min="-179"
+                                    type="range"
+                                    value={vm.editingTarget.direction || 90}
+                                    onChange={this.handleActorDirectionChange}
+                                />
+                                {` ${Math.round(vm.editingTarget.direction || 90)} deg`}
+                            </label>
                         </Box>
-                        <label>
-                            {'Scale '}
-                            <input
-                                max="300"
-                                min="10"
-                                type="range"
-                                value={vm.editingTarget.size || 100}
-                                onChange={this.handleActorSizeChange}
-                            />
-                            {` ${Math.round(vm.editingTarget.size || 100)}%`}
-                        </label>
-                        <label>
-                            {'Yaw '}
-                            <input
-                                max="180"
-                                min="-179"
-                                type="range"
-                                value={vm.editingTarget.direction || 90}
-                                onChange={this.handleActorDirectionChange}
-                            />
-                            {` ${Math.round(vm.editingTarget.direction || 90)} deg`}
-                        </label>
+                        <Box
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            <Box
+                                style={{
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700
+                                }}
+                            >
+                                {'Pivot point'}
+                            </Box>
+                            {['x', 'y', 'z'].map(axis => (
+                                <label key={axis}>
+                                    {`${axis.toUpperCase()} `}
+                                    <input
+                                        style={{maxWidth: '7rem'}}
+                                        data-axis={axis}
+                                        type="number"
+                                        value={modelPivot[axis] || 0}
+                                        onChange={this.handlePivotInput}
+                                    />
+                                </label>
+                            ))}
+                        </Box>
+                    </Box>
+                    <Box
+                        style={{
+                            color: '#6b7280',
+                            fontSize: '0.78rem',
+                            fontWeight: 500,
+                            textAlign: 'center'
+                        }}
+                    >
+                        {targetModels.length ?
+                            `${targetModels.length} model ${
+                                targetModels.length === 1 ? 'costume' : 'costumes'
+                            } on this actor` :
+                            'No model costumes yet'}
                     </Box>
                 </Box>
             </AssetPanel>

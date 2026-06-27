@@ -595,6 +595,14 @@ const serializeTarget = function (target, extensions) {
             obj.modelAssetId = target.modelAssetId;
             obj.modelAssetName = target.modelAssetName;
             obj.modelAssetDataUri = target.modelAssetDataUri;
+            obj.modelCostumes = target.modelCostumes || [{
+                id: target.modelAssetId,
+                name: target.modelAssetName,
+                dataUri: target.modelAssetDataUri,
+                attachmentPoints: target.attachmentPoints || {}
+            }];
+            obj.currentModelCostume = target.currentModelCostume || 0;
+            obj.modelPivot = target.modelPivot || {x: 0, y: 0, z: 0};
             obj.attachmentPoints = target.attachmentPoints || {};
         }
         obj.size = target.size;
@@ -1314,6 +1322,24 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         target.modelAssetName = object.modelAssetName || null;
         target.modelAssetDataUri = object.modelAssetDataUri || null;
         target.attachmentPoints = object.attachmentPoints || {};
+        target.modelCostumes = Array.isArray(object.modelCostumes) && object.modelCostumes.length > 0 ?
+            object.modelCostumes : [{
+                id: target.modelAssetId,
+                name: target.modelAssetName,
+                dataUri: target.modelAssetDataUri,
+                attachmentPoints: target.attachmentPoints
+            }];
+        target.currentModelCostume = MathUtil.clamp(
+            object.currentModelCostume || 0,
+            0,
+            target.modelCostumes.length - 1
+        );
+        target.modelPivot = object.modelPivot || {x: 0, y: 0, z: 0};
+        const activeModel = target.modelCostumes[target.currentModelCostume];
+        target.modelAssetId = activeModel.id;
+        target.modelAssetName = activeModel.name;
+        target.modelAssetDataUri = activeModel.dataUri;
+        target.attachmentPoints = activeModel.attachmentPoints || {};
     }
     if (Object.prototype.hasOwnProperty.call(object, 'direction')) {
         // Sometimes the direction can be outside of the range: LLK/scratch-gui#5806

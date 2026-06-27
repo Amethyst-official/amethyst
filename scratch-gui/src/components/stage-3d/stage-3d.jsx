@@ -55,6 +55,7 @@ const getBlockinumScene = vm => (vm && vm.runtime && vm.runtime.scratch3dScene) 
 };
 
 const vectorFromState = value => new THREE.Vector3(value.x || 0, value.y || 0, value.z || 0);
+const pivotFromTarget = target => vectorFromState(target.modelPivot || {x: 0, y: 0, z: 0});
 
 const Stage3D = ({height, vm, width}) => {
     const mountRef = useRef(null);
@@ -194,9 +195,12 @@ const Stage3D = ({height, vm, width}) => {
             if (!currentTarget) return;
 
             setLoadError(null);
-            const object = cloneScene(modelScene);
+            const object = new THREE.Group();
+            const modelObject = cloneScene(modelScene);
+            object.add(modelObject);
             object.userData.targetId = targetId;
             object.userData.modelAssetId = assetId;
+            object.userData.modelObject = modelObject;
             scene.add(object);
             targetObjects.set(targetId, object);
         };
@@ -234,6 +238,9 @@ const Stage3D = ({height, vm, width}) => {
                     object.rotation.y = THREE.MathUtils.degToRad(90 - (target.direction || 90));
                     const scale = (target.size || 100) / 100;
                     object.scale.setScalar(scale);
+                    if (object.userData.modelObject) {
+                        object.userData.modelObject.position.copy(pivotFromTarget(target).multiplyScalar(-1));
+                    }
                 }
             }
 

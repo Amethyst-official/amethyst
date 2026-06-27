@@ -114,3 +114,62 @@ test('3D actor clones inherit Z and model metadata', t => {
     t.not(clone.attachmentPoints, target.attachmentPoints);
     t.end();
 });
+
+test('3D model costumes can be added and selected like Scratch costumes', t => {
+    const rt = new Runtime();
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+
+    target.setModel3D({
+        id: 'model-1',
+        name: 'idle.glb',
+        dataUri: 'data:model/gltf-binary;base64,idle'
+    });
+    target.setModel3D({
+        id: 'model-2',
+        name: 'run.glb',
+        dataUri: 'data:model/gltf-binary;base64,run'
+    });
+
+    t.equal(target.modelCostumes.length, 2);
+    t.equal(target.currentModelCostume, 1);
+    t.equal(target.modelAssetId, 'model-2');
+
+    target.setModelCostume(0);
+
+    t.equal(target.currentModelCostume, 0);
+    t.equal(target.modelAssetId, 'model-1');
+    t.equal(target.modelAssetName, 'idle.glb');
+
+    const json = target.toJSON();
+    t.equal(json.currentModelCostume, 0);
+    t.same(json.modelCostumes.map(model => model.name), ['idle.glb', 'run.glb']);
+    t.end();
+});
+
+test('3D actor clones inherit model costume list and pivot metadata', t => {
+    const rt = new Runtime();
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+    target.setModel3D({
+        id: 'model-1',
+        name: 'idle.glb',
+        dataUri: 'data:model/gltf-binary;base64,idle'
+    });
+    target.setModel3D({
+        id: 'model-2',
+        name: 'run.glb',
+        dataUri: 'data:model/gltf-binary;base64,run'
+    });
+    target.setModelPivot({x: 5, y: -3, z: 9});
+
+    const clone = target.makeClone();
+
+    t.equal(clone.currentModelCostume, 1);
+    t.equal(clone.modelAssetId, 'model-2');
+    t.same(clone.modelPivot, {x: 5, y: -3, z: 9});
+    t.same(clone.modelCostumes.map(model => model.id), ['model-1', 'model-2']);
+    t.not(clone.modelCostumes, target.modelCostumes);
+    t.not(clone.modelPivot, target.modelPivot);
+    t.end();
+});

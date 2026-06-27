@@ -96,6 +96,9 @@ class RenderedTarget extends Target {
         this.modelAssetId = null;
         this.modelAssetName = null;
         this.modelAssetDataUri = null;
+        this.modelCostumes = [];
+        this.currentModelCostume = 0;
+        this.modelPivot = {x: 0, y: 0, z: 0};
         this.attachmentPoints = {};
 
         /**
@@ -339,9 +342,87 @@ class RenderedTarget extends Target {
      */
     setModel3D (model) {
         if (this.isStage) return;
+        const modelCostume = {
+            id: model.id,
+            name: model.name,
+            dataUri: model.dataUri,
+            attachmentPoints: Clone.simple(model.attachmentPoints || {})
+        };
+        if (!Array.isArray(this.modelCostumes)) {
+            this.modelCostumes = [];
+        }
+        const existingIndex = this.modelCostumes.findIndex(existing => existing.id === modelCostume.id);
+        if (existingIndex >= 0) {
+            this.modelCostumes[existingIndex] = modelCostume;
+            this.currentModelCostume = existingIndex;
+        } else {
+            this.modelCostumes.push(modelCostume);
+            this.currentModelCostume = this.modelCostumes.length - 1;
+        }
+        this.modelAssetId = modelCostume.id;
+        this.modelAssetName = modelCostume.name;
+        this.modelAssetDataUri = modelCostume.dataUri;
+        this.attachmentPoints = Clone.simple(modelCostume.attachmentPoints || {});
+        if (!this.modelPivot) {
+            this.modelPivot = {x: 0, y: 0, z: 0};
+        }
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    /**
+     * Select the active Scratch3D model costume.
+     * @param {number} index Model costume index.
+     */
+    setModelCostume (index) {
+        if (this.isStage || !Array.isArray(this.modelCostumes) || this.modelCostumes.length === 0) return;
+        const clampedIndex = Math.max(0, Math.min(this.modelCostumes.length - 1, Math.round(index)));
+        const model = this.modelCostumes[clampedIndex];
+        this.currentModelCostume = clampedIndex;
         this.modelAssetId = model.id;
         this.modelAssetName = model.name;
         this.modelAssetDataUri = model.dataUri;
+        this.attachmentPoints = Clone.simple(model.attachmentPoints || {});
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    /**
+     * Delete a Scratch3D model costume.
+     * @param {number} index Model costume index.
+     */
+    deleteModelCostume (index) {
+        if (this.isStage || !Array.isArray(this.modelCostumes) || this.modelCostumes.length === 0) return null;
+        const clampedIndex = Math.max(0, Math.min(this.modelCostumes.length - 1, Math.round(index)));
+        const deleted = this.modelCostumes.splice(clampedIndex, 1)[0];
+        if (this.modelCostumes.length > 0) {
+            this.setModelCostume(Math.min(clampedIndex, this.modelCostumes.length - 1));
+        } else {
+            this.currentModelCostume = 0;
+            this.modelAssetId = null;
+            this.modelAssetName = null;
+            this.modelAssetDataUri = null;
+            this.attachmentPoints = {};
+            this.emitVisualChange();
+            this.runtime.requestRedraw();
+            this.runtime.requestTargetsUpdate(this);
+        }
+        return deleted;
+    }
+
+    /**
+     * Set the model-local pivot offset used for 3D rendering.
+     * @param {{x: number, y: number, z: number}} pivot Pivot offset.
+     */
+    setModelPivot (pivot) {
+        if (this.isStage) return;
+        this.modelPivot = {
+            x: Cast.toNumber(pivot.x),
+            y: Cast.toNumber(pivot.y),
+            z: Cast.toNumber(pivot.z)
+        };
         if (!this.attachmentPoints) {
             this.attachmentPoints = {};
         }
@@ -1037,6 +1118,9 @@ class RenderedTarget extends Target {
         newClone.modelAssetId = this.modelAssetId;
         newClone.modelAssetName = this.modelAssetName;
         newClone.modelAssetDataUri = this.modelAssetDataUri;
+        newClone.modelCostumes = Clone.simple(this.modelCostumes || []);
+        newClone.currentModelCostume = this.currentModelCostume || 0;
+        newClone.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
         newClone.attachmentPoints = Clone.simple(this.attachmentPoints || {});
         newClone.direction = this.direction;
         newClone.draggable = this.draggable;
@@ -1067,6 +1151,9 @@ class RenderedTarget extends Target {
             newTarget.modelAssetId = this.modelAssetId;
             newTarget.modelAssetName = this.modelAssetName;
             newTarget.modelAssetDataUri = this.modelAssetDataUri;
+            newTarget.modelCostumes = Clone.simple(this.modelCostumes || []);
+            newTarget.currentModelCostume = this.currentModelCostume || 0;
+            newTarget.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
             newTarget.attachmentPoints = Clone.simple(this.attachmentPoints || {});
             newTarget.direction = this.direction;
             newTarget.draggable = this.draggable;
@@ -1113,6 +1200,12 @@ class RenderedTarget extends Target {
         }
         if (Object.prototype.hasOwnProperty.call(data, 'model3D')) {
             this.setModel3D(data.model3D);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'modelCostume')) {
+            this.setModelCostume(data.modelCostume);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'modelPivot')) {
+            this.setModelPivot(data.modelPivot);
         }
         if (Object.prototype.hasOwnProperty.call(data, 'direction')) {
             this.setDirection(data.direction);
@@ -1162,6 +1255,9 @@ class RenderedTarget extends Target {
             modelAssetId: this.modelAssetId,
             modelAssetName: this.modelAssetName,
             modelAssetDataUri: this.modelAssetDataUri,
+            modelCostumes: this.modelCostumes || [],
+            currentModelCostume: this.currentModelCostume || 0,
+            modelPivot: this.modelPivot || {x: 0, y: 0, z: 0},
             attachmentPoints: this.attachmentPoints,
             size: this.size,
             direction: this.direction,

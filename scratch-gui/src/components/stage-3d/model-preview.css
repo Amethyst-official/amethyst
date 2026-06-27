@@ -1,0 +1,30 @@
+.preview {
+    position: relative;
+    min-height: 14rem;
+    border: 1px solid rgba(87, 94, 117, 0.22);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #202733;
+}
+
+.preview canvas {
+    display: block;
+}
+
+.empty,
+.error {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.error {
+    color: #ffd7d7;
+}
