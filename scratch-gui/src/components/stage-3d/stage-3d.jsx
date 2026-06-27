@@ -174,7 +174,10 @@ const Stage3D = ({height, vm, width}) => {
             if (modelCache.has(assetId)) return;
 
             const promise = loader.loadAsync(target.modelAssetDataUri)
-                .then(gltf => gltf.scene)
+                .then(gltf => {
+                    setLoadError(null);
+                    return gltf.scene;
+                })
                 .catch(error => {
                     // eslint-disable-next-line no-console
                     console.warn(`blockinum3D failed to load ${target.modelAssetName || assetId}`, error);
@@ -190,6 +193,7 @@ const Stage3D = ({height, vm, width}) => {
             const currentTarget = findRenderableTarget(vm, targetId, assetId);
             if (!currentTarget) return;
 
+            setLoadError(null);
             const object = cloneScene(modelScene);
             object.userData.targetId = targetId;
             object.userData.modelAssetId = assetId;
@@ -269,18 +273,21 @@ const Stage3D = ({height, vm, width}) => {
                 if ((backgroundState.mode === 'image' || backgroundState.mode === 'hdri') &&
                     backgroundState.imageDataUri) {
                     const applyTexture = texture => {
-                        if (disposed) {
+                        if (disposed || backgroundKey !== lastBackgroundKey) {
                             texture.dispose();
                             return;
                         }
                         texture.mapping = THREE.EquirectangularReflectionMapping;
-                        texture.colorSpace = THREE.SRGBColorSpace;
+                        if (backgroundState.mode !== 'hdri') {
+                            texture.colorSpace = THREE.SRGBColorSpace;
+                        }
                         scene.background = texture;
                         scene.environment = texture;
                         grid.visible = false;
                         activeBackgroundTexture = texture;
                     };
                     const onError = error => {
+                        if (disposed || backgroundKey !== lastBackgroundKey) return;
                         // eslint-disable-next-line no-console
                         console.warn('blockinum3D failed to load scene background', error);
                         scene.background = new THREE.Color(backgroundState.skyColor || '#8fc6ff');
