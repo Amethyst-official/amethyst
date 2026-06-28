@@ -45,3 +45,23 @@ test('3D scene camera fov and lighting brightness are clamped', t => {
 
     t.end();
 });
+
+test('3D scene supports multiple switchable backdrop presets', t => {
+    const rt = new Runtime();
+    const scene3d = new Scene3D(rt);
+
+    scene3d.addBackdrop({NAME: 'Night'});
+    scene3d.switchBackdrop({BACKDROP: 'Night'});
+    scene3d.setCameraPosition({X: 1, Y: 2, Z: 3});
+    scene3d.setSkyColor({COLOR: '#001122'});
+
+    t.equal(rt.scratch3dScene.currentBackdrop, 1);
+    t.equal(rt.scratch3dScene.backdrops.length, 2);
+    t.equal(rt.scratch3dScene.backdrops[1].name, 'Night');
+    t.same(rt.scratch3dScene.backdrops[1].camera.position, {x: 1, y: 2, z: 3});
+    t.equal(rt.scratch3dScene.backdrops[1].background.skyColor, '#001122');
+
+    scene3d.nextBackdrop();
+    t.equal(rt.scratch3dScene.currentBackdrop, 0);
+    t.end();
+});

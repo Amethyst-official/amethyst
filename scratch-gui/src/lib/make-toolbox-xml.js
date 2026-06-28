@@ -31,14 +31,21 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
                 </shadow>
             </value>
         </block>
-        <block type="motion_turnright">
+        <block type="motion_turnyawby">
             <value name="DEGREES">
                 <shadow type="math_number">
                     <field name="NUM">15</field>
                 </shadow>
             </value>
         </block>
-        <block type="motion_turnleft">
+        <block type="motion_turnpitchby">
+            <value name="DEGREES">
+                <shadow type="math_number">
+                    <field name="NUM">15</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="motion_turnrollby">
             <value name="DEGREES">
                 <shadow type="math_number">
                     <field name="NUM">15</field>
@@ -182,52 +189,9 @@ const xmlEscape = function (unsafe) {
 };
 
 const looks = function (isInitialSetup, isStage, targetId, costumeName, backdropName, colors) {
-    const hello = translate('LOOKS_HELLO', 'Hello!');
-    const hmm = translate('LOOKS_HMM', 'Hmm...');
     // Note: the category's secondaryColour matches up with the blocks' tertiary color, both used for border color.
     return `
     <category name="%{BKY_CATEGORY_LOOKS}" id="looks" colour="${colors.primary}" secondaryColour="${colors.tertiary}">
-        ${isStage ? '' : `
-        <block type="looks_sayforsecs">
-            <value name="MESSAGE">
-                <shadow type="text">
-                    <field name="TEXT">${hello}</field>
-                </shadow>
-            </value>
-            <value name="SECS">
-                <shadow type="math_number">
-                    <field name="NUM">2</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="looks_say">
-            <value name="MESSAGE">
-                <shadow type="text">
-                    <field name="TEXT">${hello}</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="looks_thinkforsecs">
-            <value name="MESSAGE">
-                <shadow type="text">
-                    <field name="TEXT">${hmm}</field>
-                </shadow>
-            </value>
-            <value name="SECS">
-                <shadow type="math_number">
-                    <field name="NUM">2</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="looks_think">
-            <value name="MESSAGE">
-                <shadow type="text">
-                    <field name="TEXT">${hmm}</field>
-                </shadow>
-            </value>
-        </block>
-        ${blockSeparator}
-        `}
         ${isStage ? '' : `
             <block type="looks_changesizeby">
                 <value name="CHANGE">
@@ -249,8 +213,27 @@ const looks = function (isInitialSetup, isStage, targetId, costumeName, backdrop
             <block type="looks_show"/>
             <block type="looks_hide"/>
             ${blockSeparator}
+            <block type="looks_setmodelcolor">
+                <value name="COLOR">
+                    <shadow type="colour_picker">
+                        <field name="COLOUR">#ff8844</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="looks_clearmodelcolor"/>
+            ${blockSeparator}
             <block id="${targetId}_size" type="looks_size"/>
         `}
+        ${blockSeparator}
+        <block type="looks_switchbackdropto">
+            <value name="BACKDROP">
+                <shadow type="looks_backdrops">
+                    <field name="BACKDROP">${backdropName}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="looks_nextbackdrop"/>
+        <block type="looks_backdropnumbername"/>
         ${categorySeparator}
     </category>
     `;
@@ -260,7 +243,7 @@ const scene3d = function (colors) {
     const primary = '#4c7dff';
     const tertiary = '#3151a8';
     return `
-    <category name="Camera &amp; Lights" id="scene3d" colour="${primary}" secondaryColour="${tertiary}">
+    <category name="Camera" id="scene3d" colour="${primary}" secondaryColour="${tertiary}">
         <block type="scene3d_setcameraposition">
             <value name="X">
                 <shadow type="math_number">
@@ -299,38 +282,6 @@ const scene3d = function (colors) {
             <value name="FOV">
                 <shadow type="math_number">
                     <field name="NUM">55</field>
-                </shadow>
-            </value>
-        </block>
-        ${blockSeparator}
-        <block type="scene3d_setambientlight">
-            <value name="BRIGHTNESS">
-                <shadow type="math_number">
-                    <field name="NUM">160</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="scene3d_setkeylight">
-            <value name="BRIGHTNESS">
-                <shadow type="math_number">
-                    <field name="NUM">120</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="scene3d_setkeylightposition">
-            <value name="X">
-                <shadow type="math_number">
-                    <field name="NUM">180</field>
-                </shadow>
-            </value>
-            <value name="Y">
-                <shadow type="math_number">
-                    <field name="NUM">320</field>
-                </shadow>
-            </value>
-            <value name="Z">
-                <shadow type="math_number">
-                    <field name="NUM">240</field>
                 </shadow>
             </value>
         </block>
@@ -405,8 +356,15 @@ const events = function (isInitialSetup, isStage, targetId, colors) {
         ${isStage ? `
             <block type="event_whenstageclicked"/>
         ` : `
-            <block type="event_whenthisspriteclicked"/>
+            <block type="event_whenthisactorclickedinrange">
+                <value name="RANGE">
+                    <shadow type="math_number">
+                        <field name="NUM">300</field>
+                    </shadow>
+                </value>
+            </block>
         `}
+        <block type="event_whenbackdropswitchesto"/>
         ${blockSeparator}
         <block type="event_whengreaterthan">
             <value name="VALUE">
@@ -514,6 +472,7 @@ const sensing = function (isInitialSetup, isStage, targetId, colors) {
         <block type="sensing_mousedown"/>
         <block type="sensing_mousex"/>
         <block type="sensing_mousey"/>
+        <block type="sensing_mousez"/>
         ${blockSeparator}
         <block id="loudness" type="sensing_loudness"/>
         ${blockSeparator}

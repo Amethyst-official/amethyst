@@ -106,6 +106,9 @@ class RenderedTarget extends Target {
          * @type {number}
          */
         this.direction = 90;
+        this.pitch = 0;
+        this.roll = 0;
+        this.modelColor = null;
 
         /**
          * Whether the rendered target is draggable on the stage
@@ -426,6 +429,30 @@ class RenderedTarget extends Target {
         if (!this.attachmentPoints) {
             this.attachmentPoints = {};
         }
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    setModelColor (color) {
+        if (this.isStage) return;
+        this.modelColor = color || null;
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    setPitch (pitch) {
+        if (this.isStage || !isFinite(pitch)) return;
+        this.pitch = MathUtil.wrapClamp(pitch, -179, 180);
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    setRoll (roll) {
+        if (this.isStage || !isFinite(roll)) return;
+        this.roll = MathUtil.wrapClamp(roll, -179, 180);
         this.emitVisualChange();
         this.runtime.requestRedraw();
         this.runtime.requestTargetsUpdate(this);
@@ -1123,6 +1150,9 @@ class RenderedTarget extends Target {
         newClone.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
         newClone.attachmentPoints = Clone.simple(this.attachmentPoints || {});
         newClone.direction = this.direction;
+        newClone.pitch = this.pitch || 0;
+        newClone.roll = this.roll || 0;
+        newClone.modelColor = this.modelColor || null;
         newClone.draggable = this.draggable;
         newClone.visible = this.visible;
         newClone.size = this.size;
@@ -1156,6 +1186,9 @@ class RenderedTarget extends Target {
             newTarget.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
             newTarget.attachmentPoints = Clone.simple(this.attachmentPoints || {});
             newTarget.direction = this.direction;
+            newTarget.pitch = this.pitch || 0;
+            newTarget.roll = this.roll || 0;
+            newTarget.modelColor = this.modelColor || null;
             newTarget.draggable = this.draggable;
             newTarget.visible = this.visible;
             newTarget.size = this.size;
@@ -1210,6 +1243,15 @@ class RenderedTarget extends Target {
         if (Object.prototype.hasOwnProperty.call(data, 'direction')) {
             this.setDirection(data.direction);
         }
+        if (Object.prototype.hasOwnProperty.call(data, 'pitch')) {
+            this.setPitch(data.pitch);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'roll')) {
+            this.setRoll(data.roll);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'modelColor')) {
+            this.setModelColor(data.modelColor);
+        }
         if (Object.prototype.hasOwnProperty.call(data, 'draggable')) {
             this.setDraggable(data.draggable);
         }
@@ -1261,6 +1303,9 @@ class RenderedTarget extends Target {
             attachmentPoints: this.attachmentPoints,
             size: this.size,
             direction: this.direction,
+            pitch: this.pitch || 0,
+            roll: this.roll || 0,
+            modelColor: this.modelColor || null,
             draggable: this.draggable,
             currentCostume: this.currentCostume,
             costume: costumes[this.currentCostume],

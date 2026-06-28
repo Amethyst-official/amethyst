@@ -11,6 +11,7 @@ import errorBoundaryHOC from '../lib/error-boundary-hoc.jsx';
 import DragConstants from '../lib/drag-constants';
 import {showStandardAlert, closeAlertWithId} from '../reducers/alerts';
 import fileUploadIcon from '../components/action-menu/icon--file-upload.svg';
+import backdropIcon from '../components/action-menu/icon--backdrop.svg';
 import downloadBlob from '../lib/download-blob';
 import ModelPreview from '../components/stage-3d/model-preview.jsx';
 
@@ -59,6 +60,10 @@ class CostumeTab extends React.Component {
             'handleCameraFovChange',
             'handleCameraVectorInput',
             'handleCameraVectorChange',
+            'handleDeleteSceneBackdrop',
+            'handleNewSceneBackdrop',
+            'handleRenameSceneBackdrop',
+            'handleSelectSceneBackdrop',
             'handleSkyColorChange',
             'handleDeleteModel',
             'handleExportModel',
@@ -109,17 +114,76 @@ class CostumeTab extends React.Component {
                 keyPosition: {x: 180, y: 320, z: 240}
             };
         }
+        if (!Array.isArray(runtime.scratch3dScene.backdrops) ||
+            runtime.scratch3dScene.backdrops.length === 0) {
+            runtime.scratch3dScene.backdrops = [{
+                id: `scene-${Date.now()}`,
+                name: 'Scene 1',
+                background: {...runtime.scratch3dScene.background},
+                camera: JSON.parse(JSON.stringify(runtime.scratch3dScene.camera))
+            }];
+            runtime.scratch3dScene.currentBackdrop = 0;
+        }
+        runtime.scratch3dScene.currentBackdrop = Math.max(0, Math.min(
+            runtime.scratch3dScene.backdrops.length - 1,
+            runtime.scratch3dScene.currentBackdrop || 0
+        ));
+        const active = runtime.scratch3dScene.backdrops[runtime.scratch3dScene.currentBackdrop];
+        active.background = active.background || {...runtime.scratch3dScene.background};
+        active.camera = active.camera || JSON.parse(JSON.stringify(runtime.scratch3dScene.camera));
+        runtime.scratch3dScene.background = active.background;
+        runtime.scratch3dScene.camera = active.camera;
         return runtime.scratch3dScene;
     }
     updateScene3D (updater) {
         const scene = this.getScene3D();
         if (!scene) return;
-        updater(scene);
+        const active = scene.backdrops[scene.currentBackdrop];
+        updater(scene, active);
+        active.background = scene.background;
+        active.camera = scene.camera;
         scene.revision = (scene.revision || 0) + 1;
         if (this.props.vm.runtime.requestRedraw) {
             this.props.vm.runtime.requestRedraw();
         }
         this.refreshLocalView();
+    }
+    handleNewSceneBackdrop () {
+        this.updateScene3D(scene => {
+            const nextNumber = scene.backdrops.length + 1;
+            scene.backdrops.push({
+                id: `scene-${Date.now()}-${Math.random().toString(36)
+                    .slice(2)}`,
+                name: `Scene ${nextNumber}`,
+                background: {...scene.background},
+                camera: JSON.parse(JSON.stringify(scene.camera))
+            });
+            scene.currentBackdrop = scene.backdrops.length - 1;
+            scene.background = scene.backdrops[scene.currentBackdrop].background;
+            scene.camera = scene.backdrops[scene.currentBackdrop].camera;
+        });
+    }
+    handleSelectSceneBackdrop (index) {
+        this.updateScene3D(scene => {
+            scene.currentBackdrop = index;
+            scene.background = scene.backdrops[index].background;
+            scene.camera = scene.backdrops[index].camera;
+        });
+    }
+    handleDeleteSceneBackdrop (index) {
+        this.updateScene3D(scene => {
+            if (scene.backdrops.length <= 1) return;
+            scene.backdrops.splice(index, 1);
+            scene.currentBackdrop = Math.max(0, Math.min(scene.currentBackdrop, scene.backdrops.length - 1));
+            scene.background = scene.backdrops[scene.currentBackdrop].background;
+            scene.camera = scene.backdrops[scene.currentBackdrop].camera;
+        });
+    }
+    handleRenameSceneBackdrop (e) {
+        const name = e.target.value;
+        this.updateScene3D((scene, active) => {
+            active.name = name;
+        });
     }
     handleBackgroundModeChange (e) {
         const mode = e.target.value;
@@ -299,6 +363,9 @@ class CostumeTab extends React.Component {
 
         if (vm.editingTarget.isStage) {
             const scene = this.getScene3D();
+            const sceneBackdrops = scene.backdrops || [];
+            const selectedBackdropIndex = scene.currentBackdrop || 0;
+            const selectedBackdrop = sceneBackdrops[selectedBackdropIndex] || {};
             const background = scene.background || {};
             const camera = scene.camera || {};
             const cameraPosition = camera.position || {x: 260, y: 180, z: 420};
@@ -327,33 +394,70 @@ class CostumeTab extends React.Component {
                 </label>
             );
             return (
-                <Box
-                    style={{
-                        alignItems: 'stretch',
-                        color: '#575e75',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        flexGrow: 1,
-                        fontSize: '0.9rem',
-                        fontWeight: 600,
-                        gap: '1rem',
-                        justifyContent: 'flex-start',
-                        overflow: 'auto',
-                        padding: '1.5rem',
-                        textAlign: 'left'
-                    }}
+                <AssetPanel
+                    buttons={[
+                        {
+                            title: 'New Scene',
+                            img: backdropIcon,
+                            onClick: this.handleNewSceneBackdrop
+                        },
+                        {
+                            title: 'Upload Background / HDRI',
+                            img: fileUploadIcon,
+                            onClick: this.handleBackgroundUploadClick
+                        }
+                    ]}
+                    dragType={DragConstants.COSTUME}
+                    isRtl={isRtl}
+                    items={sceneBackdrops.map((backdrop, index) => ({
+                        name: backdrop.name || `Scene ${index + 1}`,
+                        details: `${(backdrop.background && backdrop.background.mode) || 'sky'} background`,
+                        dragPayload: null
+                    }))}
+                    selectedItemIndex={selectedBackdropIndex}
+                    onDeleteClick={sceneBackdrops.length > 1 ? this.handleDeleteSceneBackdrop : null}
+                    onItemClick={this.handleSelectSceneBackdrop}
                 >
+                    <input
+                        accept=".hdr,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                        ref={this.setBackgroundFileInput}
+                        style={{display: 'none'}}
+                        type="file"
+                        onChange={this.handleBackgroundFileUpload}
+                    />
                     <Box
                         style={{
-                            display: 'grid',
+                            alignItems: 'stretch',
+                            color: '#575e75',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flexGrow: 1,
+                            fontSize: '0.9rem',
+                            fontWeight: 600,
                             gap: '1rem',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))'
+                            justifyContent: 'flex-start',
+                            overflow: 'auto',
+                            padding: '1rem',
+                            textAlign: 'left'
                         }}
                     >
+                        <input
+                            aria-label="Scene name"
+                            style={{
+                                border: '1px solid #d9dce8',
+                                borderRadius: '0.25rem',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                padding: '0.45rem 0.6rem'
+                            }}
+                            type="text"
+                            value={selectedBackdrop.name || ''}
+                            onChange={this.handleRenameSceneBackdrop}
+                        />
                         <Box
                             style={{
                                 border: '1px solid #d9dce8',
-                                borderRadius: '0.5rem',
+                                borderRadius: '0.35rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '0.75rem',
@@ -380,19 +484,6 @@ class CostumeTab extends React.Component {
                                     onChange={this.handleSkyColorChange}
                                 />
                             </label>
-                            <button
-                                type="button"
-                                onClick={this.handleBackgroundUploadClick}
-                            >
-                                {'Upload Background / HDRI'}
-                            </button>
-                            <input
-                                accept=".hdr,.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-                                ref={this.setBackgroundFileInput}
-                                style={{display: 'none'}}
-                                type="file"
-                                onChange={this.handleBackgroundFileUpload}
-                            />
                             <Box
                                 style={{
                                     color: '#6b7280',
@@ -406,7 +497,7 @@ class CostumeTab extends React.Component {
                         <Box
                             style={{
                                 border: '1px solid #d9dce8',
-                                borderRadius: '0.5rem',
+                                borderRadius: '0.35rem',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '0.75rem',
@@ -457,7 +548,7 @@ class CostumeTab extends React.Component {
                             </label>
                         </Box>
                     </Box>
-                </Box>
+                </AssetPanel>
             );
         }
 

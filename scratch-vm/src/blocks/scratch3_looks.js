@@ -287,6 +287,8 @@ class Scratch3LooksBlocks {
             looks_sayforsecs: this.sayforsecs,
             looks_think: this.think,
             looks_thinkforsecs: this.thinkforsecs,
+            looks_setmodelcolor: this.setModelColor,
+            looks_clearmodelcolor: this.clearModelColor,
             looks_show: this.show,
             looks_hide: this.hide,
             looks_hideallsprites: () => {}, // legacy no-op block
@@ -384,6 +386,22 @@ class Scratch3LooksBlocks {
         this._renderBubble(util.target);
     }
 
+    setModelColor (args, util) {
+        if (typeof util.target.setModelColor === 'function') {
+            util.target.setModelColor(Cast.toString(args.COLOR));
+        } else {
+            util.target.modelColor = Cast.toString(args.COLOR);
+        }
+    }
+
+    clearModelColor (args, util) {
+        if (typeof util.target.setModelColor === 'function') {
+            util.target.setModelColor(null);
+        } else {
+            util.target.modelColor = null;
+        }
+    }
+
     /**
      * Utility function to set the costume of a target.
      * Matches the behavior of Scratch 2.0 for different types of arguments.
@@ -427,6 +445,37 @@ class Scratch3LooksBlocks {
      * @return {Array.<!Thread>} Any threads started by this switch.
      */
     _setBackdrop (stage, requestedBackdrop, optZeroIndex) { // used by compiler
+        const scene = this.runtime.scratch3dScene;
+        if (scene && Array.isArray(scene.backdrops) && scene.backdrops.length > 0) {
+            let index = -1;
+            if (typeof requestedBackdrop === 'number') {
+                index = optZeroIndex ? requestedBackdrop : requestedBackdrop - 1;
+            } else {
+                const requested = requestedBackdrop.toString();
+                index = scene.backdrops.findIndex(backdrop => backdrop.name === requested);
+                if (index === -1 && requested === 'next backdrop') {
+                    index = (scene.currentBackdrop + 1) % scene.backdrops.length;
+                } else if (index === -1 && requested === 'previous backdrop') {
+                    index = (scene.currentBackdrop - 1 + scene.backdrops.length) % scene.backdrops.length;
+                } else if (index === -1 && !(isNaN(requested) || Cast.isWhiteSpace(requested))) {
+                    index = optZeroIndex ? Number(requested) : Number(requested) - 1;
+                }
+            }
+            if (index >= 0) {
+                scene.currentBackdrop = MathUtil.clamp(Math.round(index), 0, scene.backdrops.length - 1);
+                const active = scene.backdrops[scene.currentBackdrop];
+                scene.background = active.background;
+                scene.camera = active.camera;
+                scene.revision = (scene.revision || 0) + 1;
+                if (this.runtime.requestRedraw) {
+                    this.runtime.requestRedraw();
+                }
+                return this.runtime.startHats('event_whenbackdropswitchesto', {
+                    BACKDROP: active.name
+                });
+            }
+        }
+
         if (typeof requestedBackdrop === 'number') {
             // Numbers should be treated as backdrop indices, always
             stage.setCostume(optZeroIndex ? requestedBackdrop : requestedBackdrop - 1);
@@ -598,6 +647,14 @@ class Scratch3LooksBlocks {
     }
 
     getBackdropNumberName (args) {
+        const scene = this.runtime.scratch3dScene;
+        if (scene && Array.isArray(scene.backdrops) && scene.backdrops.length > 0) {
+            const index = MathUtil.clamp(scene.currentBackdrop || 0, 0, scene.backdrops.length - 1);
+            if (args.NUMBER_NAME === 'number') {
+                return index + 1;
+            }
+            return scene.backdrops[index].name;
+        }
         const stage = this.runtime.getTargetForStage();
         if (args.NUMBER_NAME === 'number') {
             return stage.currentCostume + 1;

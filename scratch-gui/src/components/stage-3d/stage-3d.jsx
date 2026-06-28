@@ -54,6 +54,19 @@ const getBlockinumScene = vm => (vm && vm.runtime && vm.runtime.scratch3dScene) 
     }
 };
 
+const getActiveSceneState = sceneState => {
+    if (sceneState && Array.isArray(sceneState.backdrops) && sceneState.backdrops.length > 0) {
+        const index = Math.max(0, Math.min(sceneState.backdrops.length - 1, sceneState.currentBackdrop || 0));
+        const active = sceneState.backdrops[index] || {};
+        return {
+            ...sceneState,
+            background: active.background || sceneState.background,
+            camera: active.camera || sceneState.camera
+        };
+    }
+    return sceneState;
+};
+
 const vectorFromState = value => new THREE.Vector3(value.x || 0, value.y || 0, value.z || 0);
 const pivotFromTarget = target => vectorFromState(target.modelPivot || {x: 0, y: 0, z: 0});
 
@@ -109,6 +122,8 @@ const Stage3D = ({height, vm, width}) => {
         loader.setDRACOLoader(dracoLoader);
         const textureLoader = new THREE.TextureLoader();
         const rgbeLoader = new RGBELoader();
+        const raycaster = new THREE.Raycaster();
+        const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
         const ignoreProgress = () => {};
         const modelCache = new Map();
         const targetObjects = new Map();
@@ -119,13 +134,37 @@ const Stage3D = ({height, vm, width}) => {
 
         const getMouseData = e => {
             const rect = renderer.domElement.getBoundingClientRect();
+            const pointerX = (((e.clientX - rect.left) / rect.width) * 2) - 1;
+            const pointerY = 1 - (((e.clientY - rect.top) / rect.height) * 2);
+            const pointer = new THREE.Vector2(pointerX, pointerY);
+            raycaster.setFromCamera(pointer, camera);
+            const worldPoint = new THREE.Vector3();
+            const hasWorldPoint = raycaster.ray.intersectPlane(groundPlane, worldPoint);
             return {
                 button: e.button,
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top,
+                z: hasWorldPoint ? worldPoint.z : 0,
                 canvasWidth: rect.width,
                 canvasHeight: rect.height
             };
+        };
+
+        const pickTarget = e => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            const pointerX = (((e.clientX - rect.left) / rect.width) * 2) - 1;
+            const pointerY = 1 - (((e.clientY - rect.top) / rect.height) * 2);
+            const pointer = new THREE.Vector2(pointerX, pointerY);
+            raycaster.setFromCamera(pointer, camera);
+            const objects = Array.from(targetObjects.values());
+            const hits = raycaster.intersectObjects(objects, true);
+            if (!hits.length) return null;
+            let object = hits[0].object;
+            while (object && !object.userData.targetId) {
+                object = object.parent;
+            }
+            const targetId = object && object.userData.targetId;
+            return targetId && vm.runtime.targets.find(target => target.id === targetId);
         };
 
         const postMouseMove = e => {
@@ -139,6 +178,11 @@ const Stage3D = ({height, vm, width}) => {
                 ...getMouseData(e),
                 isDown: true
             });
+            const target = pickTarget(e);
+            if (target && vm.runtime && vm.runtime.startHats) {
+                vm.runtime.startHats('event_whenthisspriteclicked', null, target);
+                vm.runtime.startHats('event_whenthisactorclickedinrange', null, target);
+            }
         };
 
         const postMouseUp = e => {
@@ -236,10 +280,27 @@ const Stage3D = ({height, vm, width}) => {
                     object.position.set(target.x || 0, target.y || 0, target.z || 0);
                     object.visible = target.visible !== false;
                     object.rotation.y = THREE.MathUtils.degToRad(90 - (target.direction || 90));
+                    object.rotation.x = THREE.MathUtils.degToRad(target.pitch || 0);
+                    object.rotation.z = THREE.MathUtils.degToRad(target.roll || 0);
                     const scale = (target.size || 100) / 100;
                     object.scale.setScalar(scale);
                     if (object.userData.modelObject) {
                         object.userData.modelObject.position.copy(pivotFromTarget(target).multiplyScalar(-1));
+                        object.userData.modelObject.traverse(node => {
+                            if (!node.isMesh || !node.material) return;
+                            const materials = Array.isArray(node.material) ? node.material : [node.material];
+                            materials.forEach(material => {
+                                if (!material.color) return;
+                                if (!material.userData.scratch3dBaseColor) {
+                                    material.userData.scratch3dBaseColor = material.color.clone();
+                                }
+                                if (target.modelColor) {
+                                    material.color.set(target.modelColor);
+                                } else {
+                                    material.color.copy(material.userData.scratch3dBaseColor);
+                                }
+                            });
+                        });
                     }
                 }
             }
@@ -250,7 +311,7 @@ const Stage3D = ({height, vm, width}) => {
         };
 
         const syncSceneControls = () => {
-            const blockinumScene = getBlockinumScene(vm);
+            const blockinumScene = getActiveSceneState(getBlockinumScene(vm));
             const cameraState = blockinumScene.camera || {};
             const lightingState = blockinumScene.lighting || {};
             const backgroundState = blockinumScene.background || {};
@@ -381,6 +442,7 @@ Stage3D.propTypes = {
     vm: PropTypes.shape({
         postIOData: PropTypes.func,
         runtime: PropTypes.shape({
+            startHats: PropTypes.func,
             targets: PropTypes.array
         })
     }).isRequired,

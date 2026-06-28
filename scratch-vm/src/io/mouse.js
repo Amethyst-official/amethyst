@@ -8,6 +8,7 @@ class Mouse {
         this._clientY = 0;
         this._scratchX = 0;
         this._scratchY = 0;
+        this._scratchZ = 0;
         this._buttons = new Set();
         this.usesRightClickDown = false;
         this._isDown = false;
@@ -31,6 +32,8 @@ class Mouse {
         // Intentionally not checking isStage to make it work when sharing blocks.
         // @todo the blocks should be converted from one to another when shared
         this.runtime.startHats('event_whenthisspriteclicked',
+            null, target);
+        this.runtime.startHats('event_whenthisactorclickedinrange',
             null, target);
         this.runtime.startHats('event_whenstageclicked',
             null, target);
@@ -78,6 +81,9 @@ class Mouse {
                 -(this.runtime.stageHeight / 2),
                 (this.runtime.stageHeight / 2)
             );
+        }
+        if (typeof data.z === 'number') {
+            this._scratchZ = data.z;
         }
         if (typeof data.isDown !== 'undefined') {
             // If no button specified, default to left button for compatibility
@@ -154,6 +160,17 @@ class Mouse {
             return Math.round(this._scratchY);
         }
         return roundToThreeDecimals(this._scratchY);
+    }
+
+    /**
+     * Get the Z position of the mouse ray in Scratch3D coordinates.
+     * @return {number} Last known Z position for 3D picking.
+     */
+    getScratchZ () {
+        if (this.runtime.runtimeOptions.miscLimits) {
+            return Math.round(this._scratchZ);
+        }
+        return roundToThreeDecimals(this._scratchZ);
     }
 
     /**

@@ -88,6 +88,30 @@ test('3D model metadata is stored on rendered targets', t => {
     t.end();
 });
 
+test('3D actor rotation and model color metadata are stored on rendered targets', t => {
+    const rt = new Runtime();
+    const motion = new Motion(rt);
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+    const util = {target};
+
+    motion.turnYaw({DEGREES: 30}, util);
+    motion.turnPitch({DEGREES: -15}, util);
+    motion.turnRoll({DEGREES: 45}, util);
+    target.setModelColor('#ff8844');
+
+    t.equal(target.direction, 120);
+    t.equal(target.pitch, -15);
+    t.equal(target.roll, 45);
+    t.equal(target.modelColor, '#ff8844');
+
+    const clone = target.makeClone();
+    t.equal(clone.pitch, -15);
+    t.equal(clone.roll, 45);
+    t.equal(clone.modelColor, '#ff8844');
+    t.end();
+});
+
 test('3D actor clones inherit Z and model metadata', t => {
     const rt = new Runtime();
     const sprite = new Sprite(null, rt);

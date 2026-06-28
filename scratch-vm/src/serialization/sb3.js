@@ -603,10 +603,13 @@ const serializeTarget = function (target, extensions) {
             }];
             obj.currentModelCostume = target.currentModelCostume || 0;
             obj.modelPivot = target.modelPivot || {x: 0, y: 0, z: 0};
+            obj.modelColor = target.modelColor || null;
             obj.attachmentPoints = target.attachmentPoints || {};
         }
         obj.size = target.size;
         obj.direction = target.direction;
+        obj.pitch = target.pitch || 0;
+        obj.roll = target.roll || 0;
         obj.draggable = target.draggable;
         obj.rotationStyle = target.rotationStyle;
     }
@@ -745,6 +748,9 @@ const serialize = function (runtime, targetId, {allowOptimization = true} = {}) 
     const globalExtensionStorage = serializeExtensionStorage(runtime.extensionStorage, extensions);
     if (globalExtensionStorage) {
         obj.extensionStorage = globalExtensionStorage;
+    }
+    if (runtime.scratch3dScene) {
+        obj.scratch3dScene = JSON.parse(JSON.stringify(runtime.scratch3dScene));
     }
 
     obj.targets = serializedTargets;
@@ -1340,11 +1346,18 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         target.modelAssetName = activeModel.name;
         target.modelAssetDataUri = activeModel.dataUri;
         target.attachmentPoints = activeModel.attachmentPoints || {};
+        target.modelColor = object.modelColor || null;
     }
     if (Object.prototype.hasOwnProperty.call(object, 'direction')) {
         // Sometimes the direction can be outside of the range: LLK/scratch-gui#5806
         // wrapClamp it (like we do on RenderedTarget.setDirection)
         target.direction = MathUtil.wrapClamp(object.direction, -179, 180);
+    }
+    if (Object.prototype.hasOwnProperty.call(object, 'pitch')) {
+        target.pitch = MathUtil.wrapClamp(object.pitch, -179, 180);
+    }
+    if (Object.prototype.hasOwnProperty.call(object, 'roll')) {
+        target.roll = MathUtil.wrapClamp(object.roll, -179, 180);
     }
     if (Object.prototype.hasOwnProperty.call(object, 'size')) {
         target.size = object.size;
@@ -1636,6 +1649,9 @@ const deserialize = async function (json, runtime, zip, isSingleSprite) {
             monitorObjects.map(monitorDesc => deserializeMonitor(monitorDesc, runtime, targets, extensions));
             if (Object.prototype.hasOwnProperty.call(json, 'extensionStorage')) {
                 runtime.extensionStorage = json.extensionStorage;
+            }
+            if (Object.prototype.hasOwnProperty.call(json, 'scratch3dScene')) {
+                runtime.scratch3dScene = json.scratch3dScene;
             }
             return targets;
         })

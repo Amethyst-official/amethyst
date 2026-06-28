@@ -22,6 +22,9 @@ class Scratch3MotionBlocks {
             motion_goto: this.goTo,
             motion_turnright: this.turnRight,
             motion_turnleft: this.turnLeft,
+            motion_turnyawby: this.turnYaw,
+            motion_turnpitchby: this.turnPitch,
+            motion_turnrollby: this.turnRoll,
             motion_pointindirection: this.pointInDirection,
             motion_pointtowards: this.pointTowards,
             motion_glidesecstoxy: this.glide,
@@ -127,6 +130,10 @@ class Scratch3MotionBlocks {
     }
 
     turnRight (args, util) {
+        this.turnYaw(args, util);
+    }
+
+    turnYaw (args, util) {
         const degrees = Cast.toNumber(args.DEGREES);
         util.target.setDirection(util.target.direction + degrees);
     }
@@ -134,6 +141,24 @@ class Scratch3MotionBlocks {
     turnLeft (args, util) {
         const degrees = Cast.toNumber(args.DEGREES);
         util.target.setDirection(util.target.direction - degrees);
+    }
+
+    turnPitch (args, util) {
+        const degrees = Cast.toNumber(args.DEGREES);
+        if (typeof util.target.setPitch === 'function') {
+            util.target.setPitch((util.target.pitch || 0) + degrees);
+        } else {
+            util.target.pitch = (util.target.pitch || 0) + degrees;
+        }
+    }
+
+    turnRoll (args, util) {
+        const degrees = Cast.toNumber(args.DEGREES);
+        if (typeof util.target.setRoll === 'function') {
+            util.target.setRoll((util.target.roll || 0) + degrees);
+        } else {
+            util.target.roll = (util.target.roll || 0) + degrees;
+        }
     }
 
     pointInDirection (args, util) {

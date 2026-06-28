@@ -42,6 +42,9 @@ class Scratch3EventBlocks {
             event_whenthisspriteclicked: {
                 restartExistingThreads: true
             },
+            event_whenthisactorclickedinrange: {
+                restartExistingThreads: true
+            },
             event_whentouchingobject: {
                 restartExistingThreads: false,
                 edgeActivated: true
