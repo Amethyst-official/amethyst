@@ -89,7 +89,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                                         // what MIME type they are saved with, so we have to use the most broad MIME
                                         // type here. Otherwise some users just won't be able to load files for no
                                         // fault of their own.
-                                        '*/*': ['.amx', '.sb', '.sb2', '.sb3']
+                                        '*/*': ['.amx', '.sb2', '.sb3']
                                     }
                                 }
                             ]
@@ -112,7 +112,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
             } else {
                 // create <input> element and add it to DOM
                 this.inputElement = document.createElement('input');
-                this.inputElement.accept = '.amx,.sb,.sb2,.sb3';
+                this.inputElement.accept = '.amx,.sb2,.sb3';
                 this.inputElement.style = 'display: none;';
                 this.inputElement.type = 'file';
                 this.inputElement.onchange = this.handleChange; // connects to step 3

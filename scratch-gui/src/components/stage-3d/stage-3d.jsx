@@ -15,6 +15,7 @@ import {
 import {getLocalDracoDecoderPath} from '../../lib/scratch3d/local-draco-decoder.js';
 import {
     findRenderableTarget,
+    targetModelCacheKey,
     targetObjectNeedsReplacement
 } from '../../lib/scratch3d/stage3d-target-sync.js';
 import {
@@ -597,8 +598,9 @@ const Stage3D = ({height, vm, width}) => {
 
         const loadModel = target => {
             const assetId = target.modelAssetId;
-            if (!assetId || !target.modelAssetDataUri) return;
-            if (modelCache.has(assetId)) return;
+            const cacheKey = targetModelCacheKey(target);
+            if (!assetId || !target.modelAssetDataUri || !cacheKey) return;
+            if (modelCache.has(cacheKey)) return;
 
             const promise = loader.loadAsync(target.modelAssetDataUri)
                 .then(gltf => {
@@ -609,15 +611,15 @@ const Stage3D = ({height, vm, width}) => {
                     // eslint-disable-next-line no-console
                     console.warn(`Amethyst failed to load ${target.modelAssetName || assetId}`, error);
                     setLoadError(target.modelAssetName || 'model');
-                    modelCache.delete(assetId);
+                    modelCache.delete(cacheKey);
                     return null;
                 });
-            modelCache.set(assetId, promise);
+            modelCache.set(cacheKey, promise);
         };
 
-        const attachLoadedModel = (targetId, assetId, modelScene) => {
+        const attachLoadedModel = (targetId, assetId, dataUri, cacheKey, modelScene) => {
             if (disposed || !modelScene || targetObjects.has(targetId)) return;
-            const currentTarget = findRenderableTarget(vm, targetId, assetId);
+            const currentTarget = findRenderableTarget(vm, targetId, assetId, dataUri);
             if (!currentTarget) return;
 
             setLoadError(null);
@@ -626,13 +628,14 @@ const Stage3D = ({height, vm, width}) => {
             object.add(modelObject);
             object.userData.targetId = targetId;
             object.userData.modelAssetId = assetId;
+            object.userData.modelCacheKey = cacheKey;
             object.userData.modelObject = modelObject;
             scene.add(object);
             targetObjects.set(targetId, object);
         };
 
-        const queueModelAttach = (targetId, assetId, cached) => {
-            cached.then(modelScene => attachLoadedModel(targetId, assetId, modelScene));
+        const queueModelAttach = (targetId, assetId, dataUri, cacheKey, cached) => {
+            cached.then(modelScene => attachLoadedModel(targetId, assetId, dataUri, cacheKey, modelScene));
         };
 
         const syncTargets = () => {
@@ -663,9 +666,11 @@ const Stage3D = ({height, vm, width}) => {
                 if (!targetObjects.has(target.id)) {
                     const targetId = target.id;
                     const assetId = target.modelAssetId;
-                    const cached = modelCache.get(target.modelAssetId);
+                    const dataUri = target.modelAssetDataUri;
+                    const cacheKey = targetModelCacheKey(target);
+                    const cached = modelCache.get(cacheKey);
                     if (cached) {
-                        queueModelAttach(targetId, assetId, cached);
+                        queueModelAttach(targetId, assetId, dataUri, cacheKey, cached);
                     }
                 }
 
