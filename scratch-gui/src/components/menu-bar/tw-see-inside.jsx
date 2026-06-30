@@ -23,8 +23,8 @@ const SeeInsideButton = ({
         onClick={onClick}
     >
         <FormattedMessage
-            defaultMessage="See inside"
-            description="Label for see inside button"
+            defaultMessage="Open Editor"
+            description="Label for opening the editor from the player page"
             id="tw.menuBar.seeInside"
         />
     </Button>

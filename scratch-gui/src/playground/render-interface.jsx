@@ -31,11 +31,7 @@ import SettingsStore from '../addons/settings-store-singleton';
 import '../lib/tw-fix-history-api';
 import GUI from './render-gui.jsx';
 import MenuBar from '../components/menu-bar/menu-bar.jsx';
-import ProjectInput from '../components/tw-project-input/project-input.jsx';
-import FeaturedProjects from '../components/tw-featured-projects/featured-projects.jsx';
-import Description from '../components/tw-description/description.jsx';
 import BrowserModal from '../components/browser-modal/browser-modal.jsx';
-import CloudVariableBadge from '../containers/tw-cloud-variable-badge.jsx';
 import TWWindchimeSubmitter from '../containers/tw-windchime-submitter.jsx';
 import {isBrowserSupported} from '../lib/tw-environment-support-prober';
 import AddonChannels from '../addons/channels';
@@ -67,6 +63,94 @@ const WrappedMenuBar = compose(
     SBFileUploaderHOC,
     TWPackagerIntegrationHOC
 )(MenuBar);
+
+const HomeMenu = () => (
+    <div className={styles.homeMenu}>
+        <div className={styles.homeHeader}>
+            <h1>{APP_NAME}</h1>
+            <p>
+                <FormattedMessage
+                    // eslint-disable-next-line max-len
+                    defaultMessage="Make 3D games with model actors, camera blocks, lights, and simple Scratch-style code."
+                    description="Short Amethyst homepage description"
+                    id="amethyst.home.description"
+                />
+            </p>
+        </div>
+        <div className={styles.homeActions}>
+            <a
+                className={classNames(styles.homeAction, styles.primaryAction)}
+                href="editor.html"
+            >
+                <span className={styles.homeActionIcon}>{'>'}</span>
+                <span className={styles.homeActionText}>
+                    <span>
+                        <FormattedMessage
+                            defaultMessage="Create Game"
+                            description="Primary homepage action"
+                            id="amethyst.home.createGame"
+                        />
+                    </span>
+                    <small>
+                        <FormattedMessage
+                            defaultMessage="Open the Amethyst editor"
+                            description="Primary homepage action subtitle"
+                            id="amethyst.home.createGame.subtitle"
+                        />
+                    </small>
+                </span>
+            </a>
+            <a
+                className={styles.homeAction}
+                href="https://github.com/Amethyst-official/amethyst#readme"
+                target="_blank"
+                rel="noreferrer"
+            >
+                <span className={styles.homeActionIcon}>{'?'}</span>
+                <span className={styles.homeActionText}>
+                    <span>
+                        <FormattedMessage
+                            defaultMessage="Docs"
+                            description="Homepage docs action"
+                            id="amethyst.home.docs"
+                        />
+                    </span>
+                    <small>
+                        <FormattedMessage
+                            defaultMessage="Read the project guide"
+                            description="Homepage docs action subtitle"
+                            id="amethyst.home.docs.subtitle"
+                        />
+                    </small>
+                </span>
+            </a>
+            <a
+                className={styles.homeAction}
+                href="https://github.com/Amethyst-official/amethyst"
+                target="_blank"
+                rel="noreferrer"
+            >
+                <span className={styles.homeActionIcon}>{'{'}</span>
+                <span className={styles.homeActionText}>
+                    <span>
+                        <FormattedMessage
+                            defaultMessage="Source Code"
+                            description="Homepage source code action"
+                            id="amethyst.home.source"
+                        />
+                    </span>
+                    <small>
+                        <FormattedMessage
+                            defaultMessage="View the GitHub repo"
+                            description="Homepage source code action subtitle"
+                            id="amethyst.home.source.subtitle"
+                        />
+                    </small>
+                </span>
+            </a>
+        </div>
+    </div>
+);
 
 if (AddonChannels.reloadChannel) {
     AddonChannels.reloadChannel.addEventListener('message', () => {
@@ -173,13 +257,10 @@ class Interface extends React.Component {
         const {
             /* eslint-disable no-unused-vars */
             intl,
-            hasCloudVariables,
-            description,
             isFullScreen,
             isLoading,
             isPlayerOnly,
             isRtl,
-            projectId,
             /* eslint-enable no-unused-vars */
             ...props
         } = this.props;
@@ -224,85 +305,7 @@ class Interface extends React.Component {
                             {isBrowserSupported() ? null : (
                                 <BrowserModal isRtl={isRtl} />
                             )}
-                            <div className={styles.section}>
-                                <ProjectInput />
-                            </div>
-                            {(
-                                // eslint-disable-next-line max-len
-                                description.instructions === 'unshared' || description.credits === 'unshared'
-                            ) && (
-                                <div className={classNames(styles.infobox, styles.unsharedUpdate)}>
-                                    <p>
-                                        <FormattedMessage
-                                            defaultMessage="Unshared projects are no longer visible."
-                                            description="Appears on unshared projects"
-                                            id="tw.unshared2.1"
-                                        />
-                                    </p>
-                                    <p>
-                                        <FormattedMessage
-                                            defaultMessage="For more information, visit: {link}"
-                                            description="Appears on unshared projects"
-                                            id="tw.unshared.2"
-                                            values={{
-                                                link: (
-                                                    <a
-                                                        href="credits.html"
-                                                    >
-                                                        {'credits.html'}
-                                                    </a>
-                                                )
-                                            }}
-                                        />
-                                    </p>
-                                    <p>
-                                        <FormattedMessage
-                                            // eslint-disable-next-line max-len
-                                            defaultMessage="If the project was shared recently, this message may appear incorrectly for a few minutes."
-                                            description="Appears on unshared projects"
-                                            id="tw.unshared.cache"
-                                        />
-                                    </p>
-                                    <p>
-                                        <FormattedMessage
-                                            // eslint-disable-next-line max-len
-                                            defaultMessage="If this project is actually shared, please report a bug."
-                                            description="Appears on unshared projects"
-                                            id="tw.unshared.bug"
-                                        />
-                                    </p>
-                                </div>
-                            )}
-                            {hasCloudVariables && projectId !== '0' && (
-                                <div className={styles.section}>
-                                    <CloudVariableBadge />
-                                </div>
-                            )}
-                            {description.instructions || description.credits ? (
-                                <div className={styles.section}>
-                                    <Description
-                                        instructions={description.instructions}
-                                        credits={description.credits}
-                                        projectId={projectId}
-                                    />
-                                </div>
-                            ) : null}
-                            <div className={styles.section}>
-                                <p>
-                                    <FormattedMessage
-                                        // eslint-disable-next-line max-len
-                                        defaultMessage="{APP_NAME} is a Scratch-style 3D editor for making model actors, camera movement, lights, and 3D worlds with simple blocks."
-                                        description="Description of Amethyst on the homepage"
-                                        id="tw.home.description"
-                                        values={{
-                                            APP_NAME
-                                        }}
-                                    />
-                                </p>
-                            </div>
-                            <div className={styles.section}>
-                                <FeaturedProjects studio="27205657" />
-                            </div>
+                            <HomeMenu />
                         </React.Fragment>
                     ) : null}
                 </div>
@@ -314,31 +317,22 @@ class Interface extends React.Component {
 
 Interface.propTypes = {
     intl: intlShape,
-    hasCloudVariables: PropTypes.bool,
     customStageSize: PropTypes.shape({
         width: PropTypes.number,
         height: PropTypes.number
     }),
-    description: PropTypes.shape({
-        credits: PropTypes.string,
-        instructions: PropTypes.string
-    }),
     isFullScreen: PropTypes.bool,
     isLoading: PropTypes.bool,
     isPlayerOnly: PropTypes.bool,
-    isRtl: PropTypes.bool,
-    projectId: PropTypes.string
+    isRtl: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
-    hasCloudVariables: state.scratchGui.tw.hasCloudVariables,
     customStageSize: state.scratchGui.customStageSize,
-    description: state.scratchGui.tw.description,
     isFullScreen: state.scratchGui.mode.isFullScreen,
     isLoading: getIsLoading(state.scratchGui.projectState.loadingState),
     isPlayerOnly: state.scratchGui.mode.isPlayerOnly,
-    isRtl: state.locales.isRtl,
-    projectId: state.scratchGui.projectState.projectId
+    isRtl: state.locales.isRtl
 });
 
 const mapDispatchToProps = () => ({});
