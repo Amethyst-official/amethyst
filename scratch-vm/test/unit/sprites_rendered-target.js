@@ -433,6 +433,39 @@ test('#toJSON returns the sounds and costumes', t => {
     t.end();
 });
 
+test('#setModelPartTransform stores editable part transform on target and active 3D model costume', t => {
+    const r = new Runtime();
+    const spr = new Sprite(null, r);
+    const a = new RenderedTarget(spr, r);
+
+    a.setModel3D({
+        id: 'model-1',
+        name: 'Robot.glb',
+        dataUri: 'data:model/gltf-binary;base64,AAA'
+    });
+
+    a.setModelPartTransform('Arm:2', {
+        offset: {x: 10, y: 20, z: -5},
+        rotation: {x: 15, y: 45, z: -30},
+        scale: {x: 1.5, y: 0.75, z: 1},
+        pivot: {x: 2, y: 3, z: 4},
+        color: '#855cd6'
+    });
+
+    const expected = {
+        offset: {x: 10, y: 20, z: -5},
+        rotation: {x: 15, y: 45, z: -30},
+        scale: {x: 1.5, y: 0.75, z: 1},
+        pivot: {x: 2, y: 3, z: 4},
+        color: '#855cd6'
+    };
+
+    t.same(a.modelPartTransforms['Arm:2'], expected);
+    t.same(a.modelCostumes[0].partTransforms['Arm:2'], expected);
+    t.same(a.toJSON().modelPartTransforms['Arm:2'], expected);
+    t.end();
+});
+
 test('#addSound does not duplicate names', t => {
     const r = new Runtime();
     const spr = new Sprite(null, r);

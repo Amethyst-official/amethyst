@@ -33,7 +33,11 @@ class Scratch3OperatorsBlocks {
             operator_contains: this.contains,
             operator_mod: this.mod,
             operator_round: this.round,
-            operator_mathop: this.mathop
+            operator_mathop: this.mathop,
+            operator_decimaltohex: this.decimalToHex,
+            operator_decimaltobin: this.decimalToBin,
+            operator_hextodecimal: this.hexToDecimal,
+            operator_bintodecimal: this.binToDecimal
         };
     }
 
@@ -129,6 +133,48 @@ class Scratch3OperatorsBlocks {
 
     round (args) {
         return Math.round(Cast.toNumber(args.NUM));
+    }
+
+    _integerForBaseConversion (value) {
+        const number = Cast.toNumber(value);
+        if (!Number.isFinite(number)) return 0;
+        return Math.trunc(number);
+    }
+
+    _signedStringFromNumber (number, radix) {
+        const integer = this._integerForBaseConversion(number);
+        const sign = integer < 0 ? '-' : '';
+        return `${sign}${Math.abs(integer)
+            .toString(radix)
+            .toUpperCase()}`;
+    }
+
+    decimalToHex (args) {
+        return this._signedStringFromNumber(args.NUM, 16);
+    }
+
+    decimalToBin (args) {
+        return this._signedStringFromNumber(args.NUM, 2);
+    }
+
+    _parseSignedBaseString (value, radix, prefix) {
+        let text = Cast.toString(value)
+            .trim()
+            .toLowerCase();
+        const sign = text.startsWith('-') ? -1 : 1;
+        if (text.startsWith('-')) text = text.slice(1);
+        if (text.startsWith(prefix)) text = text.slice(prefix.length);
+        const validPattern = radix === 16 ? /^[0-9a-f]+$/ : /^[01]+$/;
+        if (!validPattern.test(text)) return 0;
+        return sign * parseInt(text, radix);
+    }
+
+    hexToDecimal (args) {
+        return this._parseSignedBaseString(args.VALUE, 16, '0x');
+    }
+
+    binToDecimal (args) {
+        return this._parseSignedBaseString(args.VALUE, 2, '0b');
     }
 
     mathop (args) {

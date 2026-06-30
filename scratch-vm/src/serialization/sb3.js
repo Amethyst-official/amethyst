@@ -595,16 +595,22 @@ const serializeTarget = function (target, extensions) {
             obj.modelAssetId = target.modelAssetId;
             obj.modelAssetName = target.modelAssetName;
             obj.modelAssetDataUri = target.modelAssetDataUri;
-            obj.modelCostumes = target.modelCostumes || [{
+            const modelCostumes = target.modelCostumes || [{
                 id: target.modelAssetId,
                 name: target.modelAssetName,
                 dataUri: target.modelAssetDataUri,
-                attachmentPoints: target.attachmentPoints || {}
+                partTransforms: target.modelPartTransforms || {}
             }];
+            obj.modelCostumes = modelCostumes.map(model => ({
+                id: model.id,
+                name: model.name,
+                dataUri: model.dataUri,
+                partTransforms: model.partTransforms || {}
+            }));
             obj.currentModelCostume = target.currentModelCostume || 0;
             obj.modelPivot = target.modelPivot || {x: 0, y: 0, z: 0};
             obj.modelColor = target.modelColor || null;
-            obj.attachmentPoints = target.attachmentPoints || {};
+            obj.modelPartTransforms = target.modelPartTransforms || {};
         }
         obj.size = target.size;
         obj.direction = target.direction;
@@ -1327,14 +1333,20 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         target.modelAssetId = object.modelAssetId;
         target.modelAssetName = object.modelAssetName || null;
         target.modelAssetDataUri = object.modelAssetDataUri || null;
-        target.attachmentPoints = object.attachmentPoints || {};
-        target.modelCostumes = Array.isArray(object.modelCostumes) && object.modelCostumes.length > 0 ?
+        target.modelPartTransforms = object.modelPartTransforms || {};
+        const modelCostumes = Array.isArray(object.modelCostumes) && object.modelCostumes.length > 0 ?
             object.modelCostumes : [{
                 id: target.modelAssetId,
                 name: target.modelAssetName,
                 dataUri: target.modelAssetDataUri,
-                attachmentPoints: target.attachmentPoints
+                partTransforms: target.modelPartTransforms
             }];
+        target.modelCostumes = modelCostumes.map(model => ({
+            id: model.id,
+            name: model.name,
+            dataUri: model.dataUri,
+            partTransforms: model.partTransforms || {}
+        }));
         target.currentModelCostume = MathUtil.clamp(
             object.currentModelCostume || 0,
             0,
@@ -1345,7 +1357,7 @@ const parseScratchObject = function (object, runtime, extensions, zip, assets) {
         target.modelAssetId = activeModel.id;
         target.modelAssetName = activeModel.name;
         target.modelAssetDataUri = activeModel.dataUri;
-        target.attachmentPoints = activeModel.attachmentPoints || {};
+        target.modelPartTransforms = activeModel.partTransforms || {};
         target.modelColor = object.modelColor || null;
     }
     if (Object.prototype.hasOwnProperty.call(object, 'direction')) {

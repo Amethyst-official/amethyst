@@ -76,10 +76,33 @@ const postThrottledSettingsChange = store => {
     }, 100);
 };
 
+const hiddenAmethystIncompatibleAddons = new Set([
+    '2d-color-picker',
+    'better-img-uploads',
+    'bitmap-copy',
+    'block-cherry-picking',
+    'block-duplicate',
+    'disable-stage-drag-select',
+    'hide-stage',
+    'paint-by-default',
+    'paint-skew',
+    'paint-snap',
+    'pick-colors-from-stage',
+    'remove-curved-stage-border',
+    'tw-disable-cloud-variables',
+    'tw-disable-compiler',
+    'tw-disable-vibration',
+    'tw-remove-backpack',
+    'tw-remove-feedback'
+]);
+
 const filterAddonsBySupport = () => {
     const supported = {};
     const unsupported = {};
     for (const [id, manifest] of Object.entries(importedAddons)) {
+        if (hiddenAmethystIncompatibleAddons.has(id)) {
+            continue;
+        }
         if (manifest.unsupported) {
             unsupported[id] = manifest;
         } else {

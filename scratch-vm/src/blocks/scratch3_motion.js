@@ -18,6 +18,7 @@ class Scratch3MotionBlocks {
     getPrimitives () {
         return {
             motion_movesteps: this.moveSteps,
+            motion_movesidewayssteps: this.moveSidewaysSteps,
             motion_gotoxy: this.goToXY,
             motion_goto: this.goTo,
             motion_turnright: this.turnRight,
@@ -79,6 +80,20 @@ class Scratch3MotionBlocks {
         const radians = MathUtil.degToRad(90 - target.direction);
         const dx = steps * Math.cos(radians);
         const dy = steps * Math.sin(radians);
+        target.setXY(target.x + dx, target.y + dy);
+    }
+
+    moveSidewaysSteps (args, util) {
+        const steps = Cast.toNumber(args.STEPS);
+        const direction = Cast.toString(args.DIRECTION);
+        this._moveSidewaysSteps(steps, direction, util.target);
+    }
+    _moveSidewaysSteps (steps, direction, target) {
+        const side = direction === 'left' ? -1 : 1;
+        const radians = MathUtil.degToRad(90 - target.direction);
+        const sideRadians = radians - (Math.PI / 2);
+        const dx = steps * side * Math.cos(sideRadians);
+        const dy = steps * side * Math.sin(sideRadians);
         target.setXY(target.x + dx, target.y + dy);
     }
 
@@ -211,13 +226,11 @@ class Scratch3MotionBlocks {
                     );
                 }
                 util.yield();
-            } else {
+            } else if (typeof util.target.setXYZ === 'function') {
                 // Finished: move to final position.
-                if (typeof util.target.setXYZ === 'function') {
-                    util.target.setXYZ(util.stackFrame.endX, util.stackFrame.endY, util.stackFrame.endZ);
-                } else {
-                    util.target.setXY(util.stackFrame.endX, util.stackFrame.endY);
-                }
+                util.target.setXYZ(util.stackFrame.endX, util.stackFrame.endY, util.stackFrame.endZ);
+            } else {
+                util.target.setXY(util.stackFrame.endX, util.stackFrame.endY);
             }
         } else {
             // First time: save data for future use.

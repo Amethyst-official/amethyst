@@ -21,6 +21,26 @@ import EventTargetShim from './event-target';
 const SETTINGS_KEY = 'tw:addons';
 const VERSION = 5;
 
+const disabledAmethystIncompatibleAddons = new Set([
+    '2d-color-picker',
+    'better-img-uploads',
+    'bitmap-copy',
+    'block-cherry-picking',
+    'block-duplicate',
+    'disable-stage-drag-select',
+    'hide-stage',
+    'paint-by-default',
+    'paint-skew',
+    'paint-snap',
+    'pick-colors-from-stage',
+    'remove-curved-stage-border',
+    'tw-disable-cloud-variables',
+    'tw-disable-compiler',
+    'tw-disable-vibration',
+    'tw-remove-backpack',
+    'tw-remove-feedback'
+]);
+
 const migrateSettings = settings => {
     const oldVersion = settings._;
     if (oldVersion === VERSION || !oldVersion) {
@@ -208,6 +228,9 @@ class SettingsStore extends EventTargetShim {
     }
 
     getAddonEnabled (addonId) {
+        if (disabledAmethystIncompatibleAddons.has(addonId)) {
+            return false;
+        }
         const manifest = this.getAddonManifest(addonId);
         if (manifest.unsupported) {
             return false;

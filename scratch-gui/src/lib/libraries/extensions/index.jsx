@@ -52,10 +52,9 @@ import gdxforConnectionSmallIconURL from './gdxfor/gdxfor-small.svg';
 import twIcon from './tw/tw.svg';
 import customExtensionIcon from './custom/custom.svg';
 import returnIcon from './custom/return.svg';
-import galleryIcon from './gallery/gallery.svg';
 import {APP_NAME} from '../../brand';
 
-export default [
+const extensionLibrary = [
     {
         name: (
             <FormattedMessage
@@ -90,8 +89,8 @@ export default [
         insetIconURL: penInsetIconURL,
         description: (
             <FormattedMessage
-                defaultMessage="Draw with your sprites."
-                description="Description for the 'Pen' extension"
+                defaultMessage="Draw paths and marks in 3D."
+                description="Description for the 'Pen' extension in Amethyst"
                 id="gui.extension.pen.description"
             />
         ),
@@ -128,7 +127,6 @@ export default [
             />
         ),
         extensionId: 'faceSensing',
-        extensionURL: 'https://extensions.turbowarp.org/lab/face-sensing.js',
         iconURL: faceSensingIconURL,
         insetIconURL: faceSensingInsetIconURL,
         description: (
@@ -139,7 +137,8 @@ export default [
             />
         ),
         tags: ['scratch'],
-        featured: true
+        featured: true,
+        disabled: true
     },
     {
         name: (
@@ -429,80 +428,14 @@ export default [
     }
 ];
 
-export const galleryLoading = {
-    name: (
-        <FormattedMessage
-            defaultMessage="{APP_NAME} Extension Gallery"
-            description="Name of extensions.turbowarp.org in extension library"
-            id="tw.extensionGallery.name"
-            values={{
-                APP_NAME
-            }}
-        />
-    ),
-    href: 'https://extensions.turbowarp.org/',
-    extensionId: 'gallery',
-    iconURL: galleryIcon,
-    description: (
-        <FormattedMessage
-            // eslint-disable-next-line max-len
-            defaultMessage="Loading extension gallery..."
-            description="Appears while loading extension list from the custom extension gallery"
-            id="tw.extensionGallery.loading"
-        />
-    ),
-    tags: ['tw'],
-    featured: true
-};
+const visibleExtensionIds = new Set([
+    'music',
+    'pen',
+    'videoSensing',
+    'text2speech',
+    'translate',
+    'procedures_enable_return',
+    'custom_extension'
+]);
 
-export const galleryMore = {
-    name: (
-        <FormattedMessage
-            defaultMessage="{APP_NAME} Extension Gallery"
-            description="Name of extensions.turbowarp.org in extension library"
-            id="tw.extensionGallery.name"
-            values={{
-                APP_NAME
-            }}
-        />
-    ),
-    href: 'https://extensions.turbowarp.org/',
-    extensionId: 'gallery',
-    iconURL: galleryIcon,
-    description: (
-        <FormattedMessage
-            // eslint-disable-next-line max-len
-            defaultMessage="Learn more about extensions at extensions.turbowarp.org."
-            description="Appears after the extension list from the gallery was loaded successfully"
-            id="tw.extensionGallery.more"
-        />
-    ),
-    tags: ['tw'],
-    featured: true
-};
-
-export const galleryError = {
-    name: (
-        <FormattedMessage
-            defaultMessage="{APP_NAME} Extension Gallery"
-            description="Name of extensions.turbowarp.org in extension library"
-            id="tw.extensionGallery.name"
-            values={{
-                APP_NAME
-            }}
-        />
-    ),
-    href: 'https://extensions.turbowarp.org/',
-    extensionId: 'gallery',
-    iconURL: galleryIcon,
-    description: (
-        <FormattedMessage
-            // eslint-disable-next-line max-len
-            defaultMessage="Error loading extension gallery. Visit extensions.turbowarp.org to find more extensions."
-            description="Appears when an error occurred loading extension list from the custom extension gallery"
-            id="tw.extensionGallery.error"
-        />
-    ),
-    tags: ['tw'],
-    featured: true
-};
+export default extensionLibrary.filter(extension => visibleExtensionIds.has(extension.extensionId));

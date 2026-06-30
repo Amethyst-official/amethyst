@@ -39,7 +39,7 @@ const CustomExtensionModal = props => (
                     <FormattedMessage
                         defaultMessage="URL"
                         // eslint-disable-next-line max-len
-                        description="Button to choose to load an extension from a remote URL. Not much space, so keep this short."
+                        description="Button to choose to load an extension from a URL. Not much space, so keep this short."
                         id="tw.customExtensionModal.url"
                     />
                 </div>
@@ -86,7 +86,7 @@ const CustomExtensionModal = props => (
                         value={props.url}
                         onChange={props.onChangeURL}
                         onKeyDown={props.onKeyDown}
-                        placeholder="https://extensions.turbowarp.org/..."
+                        placeholder="http://127.0.0.1:8000/extension.js"
                         autoFocus
                     />
                 </React.Fragment>

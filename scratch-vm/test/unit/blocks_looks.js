@@ -275,3 +275,12 @@ test('clamp graphic effects', t => {
     }
     t.end();
 });
+
+test('looks primitives do not expose removed animation point blocks', t => {
+    const looks = new Looks(new Runtime());
+    const primitives = looks.getPrimitives();
+
+    t.notOk(primitives.looks_movemodelpoint);
+    t.notOk(looks.moveModelPoint);
+    t.end();
+});

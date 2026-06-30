@@ -39,6 +39,7 @@
 
 .stage-size-row {
     display: flex;
+    align-items: center;
 }
 
 .stage-size-toggle-group {
@@ -90,4 +91,39 @@
 .fullscreen-buttons-row {
     /* relied on by addons */
     display: flex;
+    align-items: center;
+}
+
+.stage-mode-switch {
+    display: flex;
+    overflow: hidden;
+    margin-right: 0.55rem;
+    border: 1px solid $looks-transparent;
+    border-radius: 999px;
+    background: $ui-white;
+    box-shadow: 0 0 0 3px $looks-light-transparent;
+}
+
+[dir="rtl"] .stage-mode-switch {
+    margin-right: 0;
+    margin-left: 0.55rem;
+}
+
+.stage-mode-switch button {
+    min-width: 3.65rem;
+    height: 2rem;
+    padding: 0 0.7rem;
+    border: 0;
+    border-radius: 999px;
+    color: $looks-secondary-dark;
+    background: transparent;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.stage-mode-switch button:hover,
+.stage-mode-active {
+    color: white !important;
+    background: $looks-secondary !important;
 }

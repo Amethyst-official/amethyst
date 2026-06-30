@@ -142,6 +142,9 @@ Blockly.Msg.LOOKS_RANDOMBACKDROP = 'random backdrop';
 
 // Motion blocks
 Blockly.Msg.MOTION_MOVESTEPS = 'move %1 steps';
+Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS = 'move %1 steps %2';
+Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS_RIGHT = 'right';
+Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS_LEFT = 'left';
 Blockly.Msg.MOTION_TURNLEFT = 'turn %1 %2 degrees';
 Blockly.Msg.MOTION_TURNRIGHT = 'turn %1 %2 degrees';
 Blockly.Msg.MOTION_POINTINDIRECTION = 'point in direction %1';
@@ -184,6 +187,7 @@ Blockly.Msg.MOTION_YSCROLL = 'y scroll';
 
 Blockly.Msg.SCENE3D_SETCAMERAPOSITION = 'set camera position x: %1 y: %2 z: %3';
 Blockly.Msg.SCENE3D_POINTCAMERAAT = 'point camera at x: %1 y: %2 z: %3';
+Blockly.Msg.SCENE3D_TURNCAMERAUPDOWNBY = 'turn camera up/down by %1';
 Blockly.Msg.SCENE3D_SETCAMERAFOV = 'set camera zoom to %1';
 Blockly.Msg.SCENE3D_SETAMBIENTLIGHT = 'set world light to %1';
 Blockly.Msg.SCENE3D_SETKEYLIGHT = 'set sun light to %1';

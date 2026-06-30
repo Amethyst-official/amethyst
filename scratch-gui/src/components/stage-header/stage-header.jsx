@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import {defineMessages, injectIntl, intlShape} from 'react-intl';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import VM from 'scratch-vm';
 
@@ -11,6 +11,11 @@ import ToggleButtons from '../toggle-buttons/toggle-buttons.jsx';
 import Controls from '../../containers/controls.jsx';
 import {getStageDimensions} from '../../lib/screen-utils';
 import {STAGE_DISPLAY_SIZES, STAGE_SIZE_MODES} from '../../lib/layout-constants';
+import {
+    getScratch3DStageMode,
+    onScratch3DStageModeChange,
+    setScratch3DStageMode
+} from '../../lib/scratch3d/stage-mode.js';
 
 import fullScreenIcon from './icon--fullscreen.svg';
 import unFullScreenIcon from './icon--unfullscreen.svg';
@@ -62,6 +67,44 @@ const messages = defineMessages({
 });
 
 const enableSettingsButton = new URLSearchParams(location.search).has('settings-button');
+
+const StageModeSwitch = () => {
+    const [stageMode, setStageMode] = useState(getScratch3DStageMode());
+    useEffect(() => {
+        const unsubscribe = onScratch3DStageModeChange(setStageMode);
+        return unsubscribe;
+    }, []);
+    const handleViewMode = useCallback(() => {
+        setScratch3DStageMode('view');
+    }, []);
+    const handleDebugMode = useCallback(() => {
+        setScratch3DStageMode('debug');
+    }, []);
+
+    return (
+        <div
+            aria-label="Stage mode"
+            className={styles.stageModeSwitch}
+        >
+            <button
+                className={stageMode === 'view' ? styles.stageModeActive : ''}
+                title="View mode"
+                type="button"
+                onClick={handleViewMode}
+            >
+                {'View'}
+            </button>
+            <button
+                className={stageMode === 'debug' ? styles.stageModeActive : ''}
+                title="Debug mode"
+                type="button"
+                onClick={handleDebugMode}
+            >
+                {'Debug'}
+            </button>
+        </div>
+    );
+};
 
 const StageHeaderComponent = function (props) {
     const {
@@ -150,6 +193,7 @@ const StageHeaderComponent = function (props) {
                         className={styles.fullscreenButtonsRow}
                         key="fullscreen" // addons require the HTML element to be not be re-used by in-editor buttons
                     >
+                        <StageModeSwitch />
                         {settingsButton}
                         {fullscreenButton}
                     </div>
@@ -206,6 +250,7 @@ const StageHeaderComponent = function (props) {
                         className={styles.stageSizeRow}
                         key="editor" // addons require the HTML element to be not be re-used by in-editor buttons
                     >
+                        <StageModeSwitch />
                         {stageControls}
                         <div>
                             <Button

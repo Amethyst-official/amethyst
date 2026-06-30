@@ -1,8 +1,11 @@
+@import "../../css/colors.css";
+
 .preview {
     position: relative;
     min-height: 14rem;
+    height: 100%;
     border: 1px solid rgba(87, 94, 117, 0.22);
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     overflow: hidden;
     background: #202733;
 }
@@ -20,11 +23,78 @@
     justify-content: center;
     padding: 1rem;
     color: rgba(255, 255, 255, 0.86);
-    font-size: 0.82rem;
+    font-size: 2.4rem;
     font-weight: 700;
     text-align: center;
 }
 
 .error {
     color: #ffd7d7;
+}
+
+.hint {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 0.25rem;
+    color: $ui-white;
+    background: $looks-secondary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.24);
+    font-size: 1rem;
+    font-weight: 900;
+    pointer-events: none;
+}
+
+.icon-svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.selected-overlay {
+    position: absolute;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: calc(100% - 1rem);
+    min-height: 2rem;
+    padding: 0 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 0.25rem;
+    color: $ui-white;
+    background: rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(6px);
+    font-size: 0.78rem;
+    font-weight: 800;
+    pointer-events: none;
+}
+
+.selected-overlay span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: $looks-secondary;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+    flex: 0 0 auto;
 }

@@ -66,6 +66,14 @@ class Mouse {
      * @param  {object} data Data from DOM event.
      */
     postData (data) {
+        if (this.runtime.scratch3dMouse) {
+            if (typeof data.movementX === 'number') {
+                this.runtime.scratch3dMouse.deltaX = roundToThreeDecimals(data.movementX);
+            }
+            if (typeof data.movementY === 'number') {
+                this.runtime.scratch3dMouse.deltaY = roundToThreeDecimals(data.movementY);
+            }
+        }
         if (typeof data.x === 'number') {
             this._clientX = data.x;
             this._scratchX = MathUtil.clamp(

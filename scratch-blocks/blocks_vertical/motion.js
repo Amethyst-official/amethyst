@@ -48,6 +48,34 @@ Blockly.Blocks['motion_movesteps'] = {
   }
 };
 
+Blockly.Blocks['motion_movesidewayssteps'] = {
+  /**
+   * Block to move sideways relative to the actor's direction.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "STEPS"
+        },
+        {
+          "type": "field_dropdown",
+          "name": "DIRECTION",
+          "options": [
+            [Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS_RIGHT, 'right'],
+            [Blockly.Msg.MOTION_MOVESIDEWAYSSTEPS_LEFT, 'left']
+          ]
+        }
+      ],
+      "category": Blockly.Categories.motion,
+      "extensions": ["colours_motion", "shape_statement"]
+    });
+  }
+};
+
 Blockly.Blocks['motion_turnright'] = {
   /**
    * Block to turn right.
@@ -514,6 +542,21 @@ Blockly.Blocks['motion_yposition'] = {
   }
 };
 
+Blockly.Blocks['motion_zposition'] = {
+  /**
+   * Block to report Z.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.MOTION_ZPOSITION,
+      "category": Blockly.Categories.motion,
+      "checkboxInFlyout": true,
+      "extensions": ["colours_motion", "output_number"]
+    });
+  }
+};
+
 Blockly.Blocks['motion_direction'] = {
   /**
    * Block to report direction.
@@ -682,6 +725,26 @@ Blockly.Blocks['scene3d_pointcameraat'] = {
         {
           "type": "input_value",
           "name": "Z"
+        }
+      ],
+      "category": Blockly.Categories.motion,
+      "extensions": ["colours_motion", "shape_statement"]
+    });
+  }
+};
+
+Blockly.Blocks['scene3d_turncameraupdownby'] = {
+  /**
+   * Block to tilt the 3D camera up or down.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.SCENE3D_TURNCAMERAUPDOWNBY,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "DEGREES"
         }
       ],
       "category": Blockly.Categories.motion,

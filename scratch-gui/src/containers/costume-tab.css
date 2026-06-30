@@ -1,0 +1,531 @@
+@import "../css/colors.css";
+@import "../css/units.css";
+
+.editor-pane {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 0.5rem;
+    justify-content: flex-start;
+    overflow: auto;
+    padding: 0.5rem;
+    text-align: left;
+    color: $text-primary;
+    background: $ui-primary;
+}
+
+.visual-workspace {
+    display: grid;
+    grid-template-columns: minmax(20rem, 1fr) minmax(11rem, 15rem);
+    gap: 0.5rem;
+    min-height: 29rem;
+}
+
+.model-visual-surface,
+.scene-preview {
+    position: relative;
+    min-width: 0;
+    min-height: 29rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    background-color: $ui-secondary;
+}
+
+.model-visual-surface > :first-child {
+    width: 100%;
+    height: 100%;
+    min-height: 29rem;
+    border: 0;
+}
+
+.scene-preview {
+    background-position: center;
+    background-size: cover;
+    box-shadow: inset 0 -5rem 8rem rgba(0, 0, 0, 0.18);
+}
+
+.scene-horizon {
+    position: absolute;
+    right: 0;
+    bottom: 24%;
+    left: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.42);
+}
+
+.visual-top-bar {
+    position: absolute;
+    z-index: 5;
+    top: 0.5rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.visual-toolbar {
+    position: absolute;
+    z-index: 5;
+    top: 3.25rem;
+    left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    pointer-events: none;
+}
+
+.icon-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    pointer-events: auto;
+}
+
+.icon-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0;
+    border: 1px solid $looks-secondary;
+    border-radius: 0.25rem;
+    color: $looks-secondary-dark;
+    background: $ui-white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1;
+    pointer-events: auto;
+}
+
+.icon-svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-color-button {
+    overflow: hidden;
+}
+
+.color-swatch {
+    position: absolute;
+    right: 0.18rem;
+    bottom: 0.18rem;
+    width: 0.48rem;
+    height: 0.48rem;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.icon-button:hover,
+.icon-button-active {
+    color: $ui-white;
+    background: $looks-secondary;
+}
+
+.icon-button:disabled,
+.icon-disabled {
+    opacity: 0.45;
+    cursor: default;
+    filter: grayscale(0.35);
+}
+
+.icon-button:disabled:hover,
+.icon-disabled:hover {
+    color: $looks-secondary-dark;
+    background: $ui-primary;
+}
+
+.icon-color-button input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.icon-color-button input:disabled {
+    cursor: default;
+}
+
+.overlay-name-input,
+.visual-name-chip,
+.visual-selection-chip {
+    min-width: 0;
+    max-width: 18rem;
+    min-height: 2rem;
+    padding: 0 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 0.25rem;
+    color: $ui-white;
+    background: rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(6px);
+    font-size: 0.8rem;
+    font-weight: 800;
+    pointer-events: auto;
+}
+
+.overlay-name-input {
+    flex: 1 1 auto;
+}
+
+.visual-name-chip,
+.visual-selection-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.visual-name-chip span:last-child,
+.visual-selection-chip span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.visual-selection-chip {
+    position: absolute;
+    z-index: 5;
+    right: 0.5rem;
+    bottom: 0.5rem;
+    max-width: calc(100% - 1rem);
+    pointer-events: none;
+}
+
+.selection-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: $looks-secondary;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+    flex: 0 0 auto;
+}
+
+.overlay-dock {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+    padding: 0.4rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    background: $ui-secondary;
+    overflow: auto;
+}
+
+.overlay-vector,
+.overlay-slider {
+    display: grid;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    padding: 0.35rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    background: $ui-primary;
+}
+
+.overlay-vector {
+    grid-template-columns: 1.8rem repeat(3, minmax(0, 1fr));
+}
+
+.overlay-slider {
+    grid-template-columns: 1.8rem minmax(0, 1fr) 2.35rem;
+}
+
+.overlay-disabled {
+    opacity: 0.45;
+    filter: grayscale(0.35);
+}
+
+.vector-icon,
+.overlay-slider > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 0.25rem;
+    color: $ui-white;
+    background: $looks-secondary;
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+
+.vector-icon .icon-svg,
+.overlay-slider > span .icon-svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.overlay-axis {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.overlay-axis span {
+    color: $text-primary-transparent;
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.axis-scrub-handle {
+    border-radius: 0.2rem;
+    cursor: ew-resize;
+    user-select: none;
+}
+
+.axis-scrub-handle:hover,
+.axis-scrubbing {
+    color: $ui-white;
+    background: $looks-secondary;
+}
+
+.overlay-disabled .axis-scrub-handle {
+    cursor: default;
+}
+
+.overlay-axis input {
+    width: 100%;
+    min-width: 0;
+    height: 1.55rem;
+    padding: 0 0.25rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    color: $text-primary;
+    background: $input-background;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.overlay-slider input {
+    min-width: 0;
+}
+
+.overlay-axis input:disabled,
+.overlay-slider input:disabled {
+    cursor: default;
+    color: $text-primary-transparent;
+    background: $ui-secondary;
+}
+
+.overlay-slider strong {
+    color: $looks-secondary-dark;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-align: right;
+}
+
+.asset-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+    padding: 0 0.25rem;
+}
+
+.asset-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.asset-detail,
+.footer-note,
+.empty-note {
+    color: $text-primary-transparent;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.scene-name-input {
+    width: 100%;
+    min-height: 2.25rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    color: $text-primary;
+    background: $input-background;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.75rem;
+}
+
+.tool-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    background: $ui-primary;
+}
+
+.tool-title {
+    display: flex;
+    align-items: center;
+    min-height: 1.5rem;
+    color: $looks-secondary-dark;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.sub-tool-title {
+    color: $looks-secondary-dark;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.control-row {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.control-row input[type="range"] {
+    min-width: 0;
+}
+
+.control-row strong {
+    min-width: 3.5rem;
+    text-align: right;
+    color: $looks-secondary-dark;
+    font-size: 0.72rem;
+}
+
+.xyz-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.xyz-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+    color: $text-primary-transparent;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.axis-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+    color: $text-primary-transparent;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.xyz-grid input,
+.axis-input input,
+.control-row select {
+    width: 100%;
+    min-width: 0;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    color: $text-primary;
+    background: $input-background;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.small-button,
+.primary-button {
+    min-height: 1.8rem;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid $ui-tertiary;
+    border-radius: 0.25rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.small-button {
+    color: $looks-secondary-dark;
+    background: $looks-light-transparent;
+}
+
+.primary-button {
+    border-color: $looks-secondary;
+    color: $ui-white;
+    background: $looks-secondary;
+}
+
+.small-button:disabled,
+.primary-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.footer-note {
+    text-align: center;
+}
+
+@media (max-width: 58rem) {
+    .visual-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .overlay-dock {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+        max-height: 14rem;
+    }
+}
+
+@media (max-width: 38rem) {
+    .visual-top-bar {
+        align-items: flex-start;
+    }
+
+    .visual-toolbar {
+        top: 3.1rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+        max-width: calc(100% - 1rem);
+    }
+
+    .overlay-name-input,
+    .visual-name-chip {
+        max-width: calc(100% - 7.5rem);
+    }
+}

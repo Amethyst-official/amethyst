@@ -162,6 +162,7 @@ const StackOpcode = {
     MOTION_XY_SET: 'motion.setXY',
     MOTION_IF_ON_EDGE_BOUNCE: 'motion.ifOnEdgeBounce',
     MOTION_STEP: 'motion.step',
+    MOTION_SIDEWAYS_STEP: 'motion.sidewaysStep',
     MOTION_ROTATION_STYLE_SET: 'motion.setRotationStyle',
     MOTION_DIRECTION_SET: 'motion.setDirection',
 

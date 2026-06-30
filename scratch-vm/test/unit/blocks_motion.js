@@ -46,6 +46,47 @@ test('3D coordinates preserve Z while keeping Scratch XY behavior', t => {
     t.end();
 });
 
+test('move sideways steps moves relative to actor direction', t => {
+    const rt = new Runtime();
+    const motion = new Motion(rt);
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+    const util = {target};
+
+    target.setDirection(90);
+    motion.moveSidewaysSteps({STEPS: 10, DIRECTION: 'right'}, util);
+    t.equal(Math.round(target.x), 0);
+    t.equal(Math.round(target.y), -10);
+
+    motion.moveSidewaysSteps({STEPS: 5, DIRECTION: 'left'}, util);
+    t.equal(Math.round(target.x), 0);
+    t.equal(Math.round(target.y), -5);
+    t.end();
+});
+
+test('3D model actors can move outside the old 2D stage fence', t => {
+    const rt = new Runtime();
+    const motion = new Motion(rt);
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+    const requestedPositions = [];
+    target.renderer = {
+        getFencedPositionOfDrawable: () => [240, 180],
+        updateDrawablePosition: (id, position) => requestedPositions.push(position)
+    };
+    target.drawableID = 1;
+    target.modelAssetId = 'model-1';
+    const util = {target};
+
+    motion.goToXY({X: 10000, Y: -9000, Z: 8000}, util);
+
+    t.equal(motion.getX({}, util), 10000);
+    t.equal(motion.getY({}, util), -9000);
+    t.equal(motion.getZ({}, util), 8000);
+    t.same(requestedPositions[0], [10000, -9000]);
+    t.end();
+});
+
 test('glide to XYZ updates Z', t => {
     const rt = new Runtime();
     const motion = new Motion(rt);
@@ -67,7 +108,7 @@ test('3D model metadata is stored on rendered targets', t => {
     const target = new RenderedTarget(sprite, rt);
 
     t.equal(target.modelAssetId, null);
-    t.same(target.attachmentPoints, {});
+    t.same(target.modelPartTransforms, {});
 
     target.setModel3D({
         id: 'model-1',
@@ -78,13 +119,13 @@ test('3D model metadata is stored on rendered targets', t => {
     t.equal(target.modelAssetId, 'model-1');
     t.equal(target.modelAssetName, 'robot.glb');
     t.equal(target.modelAssetDataUri, 'data:model/gltf-binary;base64,abc');
-    t.same(target.attachmentPoints, {});
+    t.same(target.modelPartTransforms, {});
 
     const json = target.toJSON();
     t.equal(json.modelAssetId, 'model-1');
     t.equal(json.modelAssetName, 'robot.glb');
     t.equal(json.modelAssetDataUri, 'data:model/gltf-binary;base64,abc');
-    t.same(json.attachmentPoints, {});
+    t.same(json.modelPartTransforms, {});
     t.end();
 });
 
@@ -122,9 +163,13 @@ test('3D actor clones inherit Z and model metadata', t => {
         name: 'robot.glb',
         dataUri: 'data:model/gltf-binary;base64,abc'
     });
-    target.attachmentPoints = {
-        hand: {x: 1, y: 2, z: 3}
-    };
+    target.setModelPartTransform('Arm:2', {
+        offset: {x: 1, y: 2, z: 3},
+        rotation: {x: 0, y: 45, z: 0},
+        scale: {x: 1, y: 1, z: 1},
+        pivot: {x: 0, y: 1, z: 0},
+        color: '#855cd6'
+    });
 
     const clone = target.makeClone();
 
@@ -132,10 +177,14 @@ test('3D actor clones inherit Z and model metadata', t => {
     t.equal(clone.modelAssetId, 'model-1');
     t.equal(clone.modelAssetName, 'robot.glb');
     t.equal(clone.modelAssetDataUri, 'data:model/gltf-binary;base64,abc');
-    t.same(clone.attachmentPoints, {
-        hand: {x: 1, y: 2, z: 3}
+    t.same(clone.modelPartTransforms['Arm:2'], {
+        offset: {x: 1, y: 2, z: 3},
+        rotation: {x: 0, y: 45, z: 0},
+        scale: {x: 1, y: 1, z: 1},
+        pivot: {x: 0, y: 1, z: 0},
+        color: '#855cd6'
     });
-    t.not(clone.attachmentPoints, target.attachmentPoints);
+    t.not(clone.modelPartTransforms, target.modelPartTransforms);
     t.end();
 });
 

@@ -13,7 +13,7 @@ const load = () => {
     if (_ScratchBlocks) {
         return Promise.resolve();
     }
-    return import(/* webpackChunkName: "sb" */ 'scratch-blocks')
+    return import(/* webpackChunkName: "sb-amethyst-blocks" */ 'scratch-blocks')
         .then(m => {
             _ScratchBlocks = m.default;
             return _ScratchBlocks;

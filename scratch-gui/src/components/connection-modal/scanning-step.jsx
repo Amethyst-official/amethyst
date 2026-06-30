@@ -81,7 +81,7 @@ const ScanningStep = props => {
                     // so don't limit this message to the (props.peripheralList.length === 0) case
                     <BalancedFormattedMessage
                         defaultMessage={
-                            'If you don\'t see your device, you may need to update it to work with blockinum3D.'
+                            'If you don\'t see your device, you may need to update it to work with Amethyst.'
                         }
                         description="Prompt for updating a peripheral device"
                         id="gui.connection.scanning.updatePeripheralPrompt"

@@ -25,6 +25,7 @@ const SpriteSelectorComponent = function (props) {
         onDeleteSprite,
         onDuplicateSprite,
         onExportSprite,
+        onNewSpriteClick,
         onPaintSpriteClick,
         onSelectSprite,
         raised,
@@ -79,11 +80,11 @@ const SpriteSelectorComponent = function (props) {
             <button
                 className={styles.addActorButton}
                 type="button"
-                onClick={onPaintSpriteClick}
+                onClick={onNewSpriteClick || onPaintSpriteClick}
             >
                 <FormattedMessage
                     defaultMessage="Add Actor"
-                    description="Button to add a new blockinum3D actor"
+                    description="Button to add a new Amethyst actor"
                     id="gui.spriteSelector.addActor"
                 />
             </button>
@@ -109,6 +110,7 @@ SpriteSelectorComponent.propTypes = {
     onDrop: PropTypes.func,
     onDuplicateSprite: PropTypes.func,
     onExportSprite: PropTypes.func,
+    onNewSpriteClick: PropTypes.func,
     onPaintSpriteClick: PropTypes.func,
     onSelectSprite: PropTypes.func,
     raised: PropTypes.bool,

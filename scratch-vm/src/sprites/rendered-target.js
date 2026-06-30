@@ -99,7 +99,8 @@ class RenderedTarget extends Target {
         this.modelCostumes = [];
         this.currentModelCostume = 0;
         this.modelPivot = {x: 0, y: 0, z: 0};
-        this.attachmentPoints = {};
+        this.modelPartTransforms = {};
+        this.mediaDisplay = null;
 
         /**
          * Scratch direction. Currently should range from -179 to 180.
@@ -287,7 +288,8 @@ class RenderedTarget extends Target {
         const oldX = this.x;
         const oldY = this.y;
         if (this.renderer) {
-            const position = this.runtime.runtimeOptions.fencing ?
+            const is3DActor = Boolean(this.modelAssetId);
+            const position = this.runtime.runtimeOptions.fencing && !is3DActor ?
                 this.renderer.getFencedPositionOfDrawable(this.drawableID, [x, y]) :
                 [x, y];
             this.x = position[0];
@@ -349,7 +351,7 @@ class RenderedTarget extends Target {
             id: model.id,
             name: model.name,
             dataUri: model.dataUri,
-            attachmentPoints: Clone.simple(model.attachmentPoints || {})
+            partTransforms: Clone.simple(model.partTransforms || {})
         };
         if (!Array.isArray(this.modelCostumes)) {
             this.modelCostumes = [];
@@ -365,7 +367,7 @@ class RenderedTarget extends Target {
         this.modelAssetId = modelCostume.id;
         this.modelAssetName = modelCostume.name;
         this.modelAssetDataUri = modelCostume.dataUri;
-        this.attachmentPoints = Clone.simple(modelCostume.attachmentPoints || {});
+        this.modelPartTransforms = Clone.simple(modelCostume.partTransforms || {});
         if (!this.modelPivot) {
             this.modelPivot = {x: 0, y: 0, z: 0};
         }
@@ -386,7 +388,7 @@ class RenderedTarget extends Target {
         this.modelAssetId = model.id;
         this.modelAssetName = model.name;
         this.modelAssetDataUri = model.dataUri;
-        this.attachmentPoints = Clone.simple(model.attachmentPoints || {});
+        this.modelPartTransforms = Clone.simple(model.partTransforms || {});
         this.emitVisualChange();
         this.runtime.requestRedraw();
         this.runtime.requestTargetsUpdate(this);
@@ -407,12 +409,70 @@ class RenderedTarget extends Target {
             this.modelAssetId = null;
             this.modelAssetName = null;
             this.modelAssetDataUri = null;
-            this.attachmentPoints = {};
+            this.modelPartTransforms = {};
             this.emitVisualChange();
             this.runtime.requestRedraw();
             this.runtime.requestTargetsUpdate(this);
         }
         return deleted;
+    }
+
+    _syncActiveModelCostume3DData () {
+        if (!Array.isArray(this.modelCostumes) || this.modelCostumes.length === 0) return;
+        const activeIndex = Math.max(0, Math.min(
+            this.modelCostumes.length - 1,
+            Math.round(this.currentModelCostume || 0)
+        ));
+        this.modelCostumes[activeIndex] = {
+            ...this.modelCostumes[activeIndex],
+            partTransforms: Clone.simple(this.modelPartTransforms || {})
+        };
+    }
+
+    setModelPartTransform (name, transform) {
+        if (this.isStage) return;
+        const partName = Cast.toString(name).trim();
+        if (!partName) return;
+        const existing = (this.modelPartTransforms && this.modelPartTransforms[partName]) || {};
+        const color = Object.prototype.hasOwnProperty.call(transform, 'color') ?
+            (transform.color || null) :
+            existing.color;
+        const vectorField = (field, fallback) => {
+            const incoming = transform[field] || {};
+            const previous = existing[field] || fallback;
+            return {
+                x: Cast.toNumber(Object.prototype.hasOwnProperty.call(incoming, 'x') ? incoming.x : previous.x),
+                y: Cast.toNumber(Object.prototype.hasOwnProperty.call(incoming, 'y') ? incoming.y : previous.y),
+                z: Cast.toNumber(Object.prototype.hasOwnProperty.call(incoming, 'z') ? incoming.z : previous.z)
+            };
+        };
+        this.modelPartTransforms = {
+            ...(this.modelPartTransforms || {}),
+            [partName]: {
+                ...existing,
+                offset: vectorField('offset', {x: 0, y: 0, z: 0}),
+                rotation: vectorField('rotation', {x: 0, y: 0, z: 0}),
+                scale: vectorField('scale', {x: 1, y: 1, z: 1}),
+                pivot: vectorField('pivot', {x: 0, y: 0, z: 0}),
+                color
+            }
+        };
+        this._syncActiveModelCostume3DData();
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
+    }
+
+    deleteModelPartTransform (name) {
+        if (this.isStage) return;
+        const partName = Cast.toString(name).trim();
+        if (!partName || !this.modelPartTransforms) return;
+        this.modelPartTransforms = {...this.modelPartTransforms};
+        delete this.modelPartTransforms[partName];
+        this._syncActiveModelCostume3DData();
+        this.emitVisualChange();
+        this.runtime.requestRedraw();
+        this.runtime.requestTargetsUpdate(this);
     }
 
     /**
@@ -426,9 +486,6 @@ class RenderedTarget extends Target {
             y: Cast.toNumber(pivot.y),
             z: Cast.toNumber(pivot.z)
         };
-        if (!this.attachmentPoints) {
-            this.attachmentPoints = {};
-        }
         this.emitVisualChange();
         this.runtime.requestRedraw();
         this.runtime.requestTargetsUpdate(this);
@@ -1148,7 +1205,8 @@ class RenderedTarget extends Target {
         newClone.modelCostumes = Clone.simple(this.modelCostumes || []);
         newClone.currentModelCostume = this.currentModelCostume || 0;
         newClone.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
-        newClone.attachmentPoints = Clone.simple(this.attachmentPoints || {});
+        newClone.modelPartTransforms = Clone.simple(this.modelPartTransforms || {});
+        newClone.mediaDisplay = Clone.simple(this.mediaDisplay || null);
         newClone.direction = this.direction;
         newClone.pitch = this.pitch || 0;
         newClone.roll = this.roll || 0;
@@ -1184,7 +1242,8 @@ class RenderedTarget extends Target {
             newTarget.modelCostumes = Clone.simple(this.modelCostumes || []);
             newTarget.currentModelCostume = this.currentModelCostume || 0;
             newTarget.modelPivot = Clone.simple(this.modelPivot || {x: 0, y: 0, z: 0});
-            newTarget.attachmentPoints = Clone.simple(this.attachmentPoints || {});
+            newTarget.modelPartTransforms = Clone.simple(this.modelPartTransforms || {});
+            newTarget.mediaDisplay = Clone.simple(this.mediaDisplay || null);
             newTarget.direction = this.direction;
             newTarget.pitch = this.pitch || 0;
             newTarget.roll = this.roll || 0;
@@ -1239,6 +1298,13 @@ class RenderedTarget extends Target {
         }
         if (Object.prototype.hasOwnProperty.call(data, 'modelPivot')) {
             this.setModelPivot(data.modelPivot);
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'modelPartTransforms')) {
+            this.modelPartTransforms = Clone.simple(data.modelPartTransforms || {});
+            this._syncActiveModelCostume3DData();
+        }
+        if (Object.prototype.hasOwnProperty.call(data, 'mediaDisplay')) {
+            this.mediaDisplay = Clone.simple(data.mediaDisplay || null);
         }
         if (Object.prototype.hasOwnProperty.call(data, 'direction')) {
             this.setDirection(data.direction);
@@ -1300,7 +1366,8 @@ class RenderedTarget extends Target {
             modelCostumes: this.modelCostumes || [],
             currentModelCostume: this.currentModelCostume || 0,
             modelPivot: this.modelPivot || {x: 0, y: 0, z: 0},
-            attachmentPoints: this.attachmentPoints,
+            modelPartTransforms: this.modelPartTransforms || {},
+            mediaDisplay: this.mediaDisplay || null,
             size: this.size,
             direction: this.direction,
             pitch: this.pitch || 0,

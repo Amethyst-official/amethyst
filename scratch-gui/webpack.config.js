@@ -128,6 +128,10 @@ const base = {
                     from: 'src/lib/themes/blocks/high-contrast-media/blocks-media',
                     to: 'static/blocks-media/high-contrast',
                     force: true
+                },
+                {
+                    from: 'node_modules/three/examples/jsm/libs/draco/gltf',
+                    to: 'static/draco/gltf'
                 }
             ]
         })
@@ -186,7 +190,7 @@ module.exports = [
                 chunks: ['editor'],
                 template: 'src/playground/index.ejs',
                 filename: 'editor.html',
-                title: `${APP_NAME} - Run Scratch projects faster`,
+                title: `${APP_NAME} - Scratch in 3D`,
                 isEditor: true,
                 ...htmlWebpackPluginCommon
             }),
@@ -194,14 +198,14 @@ module.exports = [
                 chunks: ['player'],
                 template: 'src/playground/index.ejs',
                 filename: 'index.html',
-                title: `${APP_NAME} - Run Scratch projects faster`,
+                title: `${APP_NAME} - Scratch in 3D`,
                 ...htmlWebpackPluginCommon
             }),
             new HtmlWebpackPlugin({
                 chunks: ['fullscreen'],
                 template: 'src/playground/index.ejs',
                 filename: 'fullscreen.html',
-                title: `${APP_NAME} - Run Scratch projects faster`,
+                title: `${APP_NAME} - Scratch in 3D`,
                 ...htmlWebpackPluginCommon
             }),
             new HtmlWebpackPlugin({

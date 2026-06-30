@@ -816,6 +816,9 @@ class JSGenerator {
         case StackOpcode.MOTION_STEP:
             this.source += `runtime.ext_scratch3_motion._moveSteps(${this.descendInput(node.steps)}, target);\n`;
             break;
+        case StackOpcode.MOTION_SIDEWAYS_STEP:
+            this.source += `runtime.ext_scratch3_motion._moveSidewaysSteps(${this.descendInput(node.steps)}, "${sanitize(node.direction)}", target);\n`;
+            break;
 
         case StackOpcode.NOP:
             break;

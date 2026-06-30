@@ -31,6 +31,14 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
                 </shadow>
             </value>
         </block>
+        <block type="motion_movesidewayssteps">
+            <value name="STEPS">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+            <field name="DIRECTION">right</field>
+        </block>
         <block type="motion_turnyawby">
             <value name="DEGREES">
                 <shadow type="math_number">
@@ -278,6 +286,20 @@ const scene3d = function (colors) {
                 </shadow>
             </value>
         </block>
+        <block type="scene3d_turncameraupdownby">
+            <value name="DEGREES">
+                <shadow type="math_number">
+                    <field name="NUM">15</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_turncameraleftrightby">
+            <value name="DEGREES">
+                <shadow type="math_number">
+                    <field name="NUM">15</field>
+                </shadow>
+            </value>
+        </block>
         <block type="scene3d_setcamerafov">
             <value name="FOV">
                 <shadow type="math_number">
@@ -285,6 +307,291 @@ const scene3d = function (colors) {
                 </shadow>
             </value>
         </block>
+        <block type="scene3d_setcamerasmoothingduration">
+            <value name="SECONDS">
+                <shadow type="math_number">
+                    <field name="NUM">0.35</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
+        <block type="scene3d_followthisactor"/>
+        <block type="scene3d_stopfollowing"/>
+        <block type="scene3d_setfollowdistance">
+            <value name="DISTANCE">
+                <shadow type="math_number">
+                    <field name="NUM">240</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setfollowheight">
+            <value name="HEIGHT">
+                <shadow type="math_number">
+                    <field name="NUM">35</field>
+                </shadow>
+            </value>
+        </block>
+        ${categorySeparator}
+    </category>
+    `;
+};
+
+const environment = function (backdropName) {
+    const primary = '#2fb86f';
+    const tertiary = '#21804e';
+    return `
+    <category name="Environment" id="environment" colour="${primary}" secondaryColour="${tertiary}">
+        <block type="scene3d_setenvironmentpreset">
+            <field name="PRESET">sunny</field>
+        </block>
+        ${blockSeparator}
+        <block type="scene3d_setskycolor">
+            <value name="COLOR">
+                <shadow type="colour_picker">
+                    <field name="COLOUR">#8fc6ff</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setgroundcolor">
+            <value name="COLOR">
+                <shadow type="colour_picker">
+                    <field name="COLOUR">#d7eef7</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setfogamount">
+            <value name="AMOUNT">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
+        <block type="scene3d_setsunangle">
+            <value name="AZIMUTH">
+                <shadow type="math_number">
+                    <field name="NUM">35</field>
+                </shadow>
+            </value>
+            <value name="ELEVATION">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setsuncolor">
+            <value name="COLOR">
+                <shadow type="colour_picker">
+                    <field name="COLOUR">#ffffff</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setkeylight">
+            <value name="BRIGHTNESS">
+                <shadow type="math_number">
+                    <field name="NUM">120</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_setambientlight">
+            <value name="BRIGHTNESS">
+                <shadow type="math_number">
+                    <field name="NUM">160</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
+        <block type="scene3d_switchbackdrop">
+            <value name="BACKDROP">
+                <shadow type="looks_backdrops">
+                    <field name="BACKDROP">${backdropName}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="scene3d_nextbackdrop"/>
+        ${categorySeparator}
+    </category>
+    `;
+};
+
+const mouse = function (colors) {
+    const primary = '#00a9a5';
+    const tertiary = '#047a77';
+    return `
+    <category name="Mouse" id="mouse" colour="${primary}" secondaryColour="${tertiary}">
+        <block type="mouse_showcursor"/>
+        <block type="mouse_hidecursor"/>
+        <block type="mouse_setmode">
+            <field name="MODE">normal</field>
+        </block>
+        <block type="mouse_setsensitivity">
+            <value name="SENSITIVITY">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="mouse_setthirdpersondistance">
+            <value name="DISTANCE">
+                <shadow type="math_number">
+                    <field name="NUM">240</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
+        <block type="mouse_lock"/>
+        <block type="mouse_unlock"/>
+        ${blockSeparator}
+        <block type="sensing_mousedown"/>
+        <block type="mouse_buttondown">
+            <field name="BUTTON">left</field>
+        </block>
+        <block type="sensing_mousex"/>
+        <block type="sensing_mousey"/>
+        <block type="sensing_mousez"/>
+        ${blockSeparator}
+        <block type="mouse_deltax"/>
+        <block type="mouse_deltay"/>
+        <block type="mouse_mode"/>
+        ${categorySeparator}
+    </category>
+    `;
+};
+
+const network = function (colors) {
+    const primary = '#0f8f8c';
+    const tertiary = '#047a77';
+    return `
+    <category name="Network" id="network" colour="${primary}" secondaryColour="${tertiary}">
+        <label text="Do not listen to anyone who told you to use this."></label>
+        <label text="Only use Network if you know what you are doing."></label>
+        <block type="network_confirmsafety"/>
+        <block type="network_isconfirmed"/>
+        ${blockSeparator}
+        <block type="network_sendrequest">
+            <field name="METHOD">GET</field>
+            <value name="URL">
+                <shadow type="text">
+                    <field name="TEXT">https://example.com</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="network_sendapirequest">
+            <field name="METHOD">POST</field>
+            <value name="URL">
+                <shadow type="text">
+                    <field name="TEXT">https://example.com/api</field>
+                </shadow>
+            </value>
+            <value name="BODY">
+                <shadow type="text">
+                    <field name="TEXT">{"hello":"world"}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="network_responsetext"/>
+        <block type="network_responsestatus"/>
+        <block type="network_responseok"/>
+        ${blockSeparator}
+        <block type="network_jsonget">
+            <value name="PATH">
+                <shadow type="text">
+                    <field name="TEXT">player.name</field>
+                </shadow>
+            </value>
+            <value name="JSON">
+                <shadow type="text">
+                    <field name="TEXT">{"player":{"name":"Amethyst"}}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="network_jsonset">
+            <value name="PATH">
+                <shadow type="text">
+                    <field name="TEXT">player.hp</field>
+                </shadow>
+            </value>
+            <value name="VALUE">
+                <shadow type="text">
+                    <field name="TEXT">10</field>
+                </shadow>
+            </value>
+            <value name="JSON">
+                <shadow type="text">
+                    <field name="TEXT">{"player":{}}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="network_jsonvalid">
+            <value name="JSON">
+                <shadow type="text">
+                    <field name="TEXT">{"ok":true}</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="network_jsonstringify">
+            <value name="TEXT">
+                <shadow type="text">
+                    <field name="TEXT">hello</field>
+                </shadow>
+            </value>
+        </block>
+        ${categorySeparator}
+    </category>
+    `;
+};
+
+const mediaDisplay = function (colors) {
+    const primary = colors.primary;
+    const tertiary = colors.tertiary;
+    return `
+    <category name="Media Display" id="media" colour="${primary}" secondaryColour="${tertiary}">
+        <block type="media_setimageurl">
+            <value name="URL">
+                <shadow type="text">
+                    <field name="TEXT">https://example.com/image.png</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="media_setvideourl">
+            <value name="URL">
+                <shadow type="text">
+                    <field name="TEXT">https://example.com/video.mp4</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="media_setuploaded">
+            <value name="SOURCE">
+                <shadow type="text">
+                    <field name="TEXT">data:image/png;base64,...</field>
+                </shadow>
+            </value>
+            <value name="NAME">
+                <shadow type="text">
+                    <field name="TEXT">media</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="media_setsize">
+            <value name="WIDTH">
+                <shadow type="math_number">
+                    <field name="NUM">180</field>
+                </shadow>
+            </value>
+            <value name="HEIGHT">
+                <shadow type="math_number">
+                    <field name="NUM">120</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
+        <block type="media_play"/>
+        <block type="media_pause"/>
+        <block type="media_restart"/>
+        ${blockSeparator}
+        <block type="media_time"/>
+        <block type="media_duration"/>
+        <block type="media_loaded"/>
         ${categorySeparator}
     </category>
     `;
@@ -675,6 +982,35 @@ const operators = function (isInitialSetup, isStage, targetId, colors) {
             </value>
         </block>
         ${blockSeparator}
+        <block type="operator_decimaltohex">
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">255</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="operator_decimaltobin">
+            <value name="NUM">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="operator_hextodecimal">
+            <value name="VALUE">
+                <shadow type="text">
+                    <field name="TEXT">FF</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="operator_bintodecimal">
+            <value name="VALUE">
+                <shadow type="text">
+                    <field name="TEXT">1010</field>
+                </shadow>
+            </value>
+        </block>
+        ${blockSeparator}
         <block type="operator_mathop">
             <value name="NUM">
                 <shadow type="math_number">
@@ -716,7 +1052,7 @@ const myBlocks = function (isInitialSetup, isStage, targetId, colors) {
 // eslint-disable-next-line max-len
 const extraTurboWarpBlocks = `
 <block type="argument_reporter_boolean"><field name="VALUE">is compiled?</field></block>
-<block type="argument_reporter_boolean"><field name="VALUE">is blockinum3D?</field></block>
+<block type="argument_reporter_boolean"><field name="VALUE">is Amethyst?</field></block>
 `;
 /* eslint-enable no-unused-vars */
 
@@ -760,6 +1096,8 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
     };
     const motionXML = moveCategory('motion') || motion(isInitialSetup, isStage, targetId, colors.motion);
     const scene3dXML = moveCategory('scene3d') || scene3d(colors.motion);
+    const environmentXML = moveCategory('environment') || environment(backdropName);
+    const mouseXML = moveCategory('mouse') || mouse(colors.sensing);
     const looksXML = moveCategory('looks') ||
         looks(isInitialSetup, isStage, targetId, costumeName, backdropName, colors.looks);
     const soundXML = moveCategory('sound') || sound(isInitialSetup, isStage, targetId, soundName, colors.sounds);
@@ -768,6 +1106,8 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
     const sensingXML = moveCategory('sensing') || sensing(isInitialSetup, isStage, targetId, colors.sensing);
     const operatorsXML = moveCategory('operators') || operators(isInitialSetup, isStage, targetId, colors.operators);
     const variablesXML = moveCategory('data') || variables(isInitialSetup, isStage, targetId, colors.data);
+    const mediaXML = moveCategory('media') || mediaDisplay(colors.looks);
+    const networkXML = moveCategory('network') || network(colors.sensing);
     const myBlocksXML = moveCategory('procedures') || myBlocks(isInitialSetup, isStage, targetId, colors.more);
 
     // Always display TurboWarp blocks as the first extension, if it exists,
@@ -781,6 +1121,8 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
         xmlOpen,
         motionXML, gap,
         scene3dXML, gap,
+        environmentXML, gap,
+        mouseXML, gap,
         looksXML, gap,
         soundXML, gap,
         eventsXML, gap,
@@ -788,6 +1130,8 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
         sensingXML, gap,
         operatorsXML, gap,
         variablesXML, gap,
+        mediaXML, gap,
+        networkXML, gap,
         myBlocksXML
     ];
 

@@ -13,9 +13,8 @@ import log from '../lib/log';
 // from sb-file-uploader-hoc.jsx
 const getProjectTitleFromFilename = fileInputFilename => {
     if (!fileInputFilename) return '';
-    // only parse title with valid scratch project extensions
-    // (.sb, .sb2, and .sb3)
-    const matches = fileInputFilename.match(/^(.*)\.sb[23]?$/);
+    // only parse title with valid Amethyst/project extensions
+    const matches = fileInputFilename.match(/^(.*)\.(?:amx|sb[23]?)$/i);
     if (!matches) return '';
     return matches[1].substring(0, 100); // truncate project title to max 100 chars
 };
@@ -100,9 +99,9 @@ class SB3Downloader extends React.Component {
                 suggestedName: this.props.projectFilename,
                 types: [
                     {
-                        description: 'Scratch 3 Project',
+                        description: 'Amethyst Project',
                         accept: {
-                            'application/octet-stream': '.sb3'
+                            'application/octet-stream': ['.amx', '.sb3']
                         }
                     }
                 ],
@@ -271,7 +270,7 @@ const getProjectFilename = (curTitle, defaultTitle) => {
     if (!filenameTitle || filenameTitle.length === 0) {
         filenameTitle = defaultTitle;
     }
-    return `${filenameTitle.substring(0, 100)}.sb3`;
+    return `${filenameTitle.substring(0, 100)}.amx`;
 };
 
 SB3Downloader.propTypes = {

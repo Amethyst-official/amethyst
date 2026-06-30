@@ -855,6 +855,11 @@ class ScriptTreeGenerator {
             return new IntermediateStackBlock(StackOpcode.MOTION_STEP, {
                 steps: this.descendInputOfBlock(block, 'STEPS').toType(InputType.NUMBER)
             });
+        case 'motion_movesidewayssteps':
+            return new IntermediateStackBlock(StackOpcode.MOTION_SIDEWAYS_STEP, {
+                steps: this.descendInputOfBlock(block, 'STEPS').toType(InputType.NUMBER),
+                direction: block.fields.DIRECTION.value
+            });
         case 'motion_pointindirection':
             return new IntermediateStackBlock(StackOpcode.MOTION_DIRECTION_SET, {
                 direction: this.descendInputOfBlock(block, 'DIRECTION').toType(InputType.NUMBER)

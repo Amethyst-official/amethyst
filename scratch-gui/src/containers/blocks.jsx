@@ -10,8 +10,10 @@ import VM from 'scratch-vm';
 import {defineScratch3DSceneBlocks} from '../lib/scratch3d-scene-blocks';
 
 import log from '../lib/log.js';
+import Modal from './modal.jsx';
 import Prompt from './prompt.jsx';
 import BlocksComponent from '../components/blocks/blocks.jsx';
+import blockStyles from '../components/blocks/blocks.css';
 import ExtensionLibrary from './extension-library.jsx';
 import extensionData from '../lib/libraries/extensions/index.jsx';
 import CustomProcedures from './custom-procedures.jsx';
@@ -104,7 +106,11 @@ class Blocks extends React.Component {
             'handleCategorySelected',
             'handleConnectionModalStart',
             'handleDrop',
+            'handleNetworkSafetyCancel',
+            'handleNetworkSafetyCheckboxChange',
+            'handleNetworkSafetyConfirm',
             'handleStatusButtonUpdate',
+            'installNetworkCategoryGate',
             'handleOpenSoundRecorder',
             'handlePromptStart',
             'handlePromptCallback',
@@ -130,8 +136,11 @@ class Blocks extends React.Component {
         this.ScratchBlocks.recordSoundCallback = this.handleOpenSoundRecorder;
 
         this.state = {
-            prompt: null
+            prompt: null,
+            networkSafetyPrompt: false,
+            networkSafetyChecked: false
         };
+        this.networkCategoryConfirmed = false;
         this.onTargetsUpdate = debounce(this.onTargetsUpdate, 100);
         this.toolboxUpdateQueue = [];
     }
@@ -153,6 +162,7 @@ class Blocks extends React.Component {
         Msg.PROCEDURES_TO_STATEMENT = this.props.intl.formatMessage(messages.PROCEDURES_TO_STATEMENT);
         Msg.PROCEDURES_DOCS = this.props.intl.formatMessage(messages.PROCEDURES_DOCS);
         defineScratch3DSceneBlocks(this.ScratchBlocks);
+        this.installNetworkCategoryGate(this.ScratchBlocks);
 
         const workspaceConfig = defaultsDeep({},
             this.props.options,
@@ -167,6 +177,14 @@ class Blocks extends React.Component {
             Blocks.defaultOptions
         );
         this.workspace = this.ScratchBlocks.inject(this.blocks, workspaceConfig);
+        this.workspace.toolbox_.amethystNetworkCategoryGate = () => {
+            if (this.networkCategoryConfirmed) return true;
+            this.setState({
+                networkSafetyPrompt: true,
+                networkSafetyChecked: false
+            });
+            return false;
+        };
         AddonHooks.blocklyWorkspace = this.workspace;
 
         // Register buttons under new callback keys for creating variables,
@@ -235,6 +253,8 @@ class Blocks extends React.Component {
     shouldComponentUpdate (nextProps, nextState) {
         return (
             this.state.prompt !== nextState.prompt ||
+            this.state.networkSafetyPrompt !== nextState.networkSafetyPrompt ||
+            this.state.networkSafetyChecked !== nextState.networkSafetyChecked ||
             this.props.isVisible !== nextProps.isVisible ||
             this._renderedToolboxXML !== nextProps.toolboxXML ||
             this.props.extensionLibraryVisible !== nextProps.extensionLibraryVisible ||
@@ -351,6 +371,30 @@ class Blocks extends React.Component {
         } else {
             fn();
         }
+    }
+
+    installNetworkCategoryGate (ScratchBlocks) {
+        const toolboxPrototype = ScratchBlocks.Toolbox && ScratchBlocks.Toolbox.prototype;
+        if (!toolboxPrototype || toolboxPrototype.amethystNetworkGateInstalled_) return;
+
+        const originalSetSelectedItemFactory = toolboxPrototype.setSelectedItemFactory;
+        toolboxPrototype.setSelectedItemFactory = function (item) {
+            const originalHandler = originalSetSelectedItemFactory.call(this, item);
+            return function () {
+                if (
+                    !this.workspace_.isDragging() &&
+                    item &&
+                    item.id_ === 'network' &&
+                    this.amethystNetworkCategoryGate &&
+                    !this.amethystNetworkCategoryGate()
+                ) {
+                    ScratchBlocks.Touch.clearTouchIdentifier();
+                    return;
+                }
+                return originalHandler.call(this);
+            };
+        };
+        toolboxPrototype.amethystNetworkGateInstalled_ = true;
     }
 
     attachVM () {
@@ -589,6 +633,27 @@ class Blocks extends React.Component {
             this.workspace.toolbox_.setSelectedCategoryById(categoryId);
         });
     }
+    handleNetworkSafetyCheckboxChange (event) {
+        this.setState({
+            networkSafetyChecked: event.target.checked
+        });
+    }
+    handleNetworkSafetyCancel () {
+        this.setState({
+            networkSafetyPrompt: false,
+            networkSafetyChecked: false
+        });
+    }
+    handleNetworkSafetyConfirm () {
+        if (!this.state.networkSafetyChecked) return;
+        this.networkCategoryConfirmed = true;
+        this.setState({
+            networkSafetyPrompt: false,
+            networkSafetyChecked: false
+        }, () => {
+            this.handleCategorySelected('network');
+        });
+    }
     setBlocks (blocks) {
         this.blocks = blocks;
     }
@@ -714,6 +779,51 @@ class Blocks extends React.Component {
                         onCancel={this.handlePromptClose}
                         onOk={this.handlePromptCallback}
                     />
+                ) : null}
+                {this.state.networkSafetyPrompt ? (
+                    <Modal
+                        className={blockStyles.networkSafetyModal}
+                        contentLabel="Network blocks"
+                        id="networkSafety"
+                        onRequestClose={this.handleNetworkSafetyCancel}
+                    >
+                        <div className={blockStyles.networkSafetyBody}>
+                            <div className={blockStyles.networkSafetyTitle}>
+                                Network blocks can contact websites.
+                            </div>
+                            <div className={blockStyles.networkSafetyText}>
+                                Do not listen to anyone who told you to use this.
+                                Only continue if you know what you are doing.
+                            </div>
+                            <label className={blockStyles.networkSafetyCheck}>
+                                <input
+                                    checked={this.state.networkSafetyChecked}
+                                    type="checkbox"
+                                    onChange={this.handleNetworkSafetyCheckboxChange}
+                                />
+                                <span>
+                                    I understand and I know what I am doing.
+                                </span>
+                            </label>
+                            <div className={blockStyles.networkSafetyActions}>
+                                <button
+                                    className={blockStyles.networkSafetyCancel}
+                                    type="button"
+                                    onClick={this.handleNetworkSafetyCancel}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className={blockStyles.networkSafetyContinue}
+                                    disabled={!this.state.networkSafetyChecked}
+                                    type="button"
+                                    onClick={this.handleNetworkSafetyConfirm}
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </Modal>
                 ) : null}
                 {extensionLibraryVisible ? (
                     <ExtensionLibrary

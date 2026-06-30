@@ -186,3 +186,17 @@ test('mathop', t => {
     t.strictEqual(blocks.mathop({OPERATOR: 'undefined', NUM: 1}), 0);
     t.end();
 });
+
+test('base conversions', t => {
+    t.strictEqual(blocks.decimalToHex({NUM: 255}), 'FF');
+    t.strictEqual(blocks.decimalToHex({NUM: -16}), '-10');
+    t.strictEqual(blocks.decimalToBin({NUM: 10}), '1010');
+    t.strictEqual(blocks.decimalToBin({NUM: -5}), '-101');
+    t.strictEqual(blocks.hexToDecimal({VALUE: '0xff'}), 255);
+    t.strictEqual(blocks.hexToDecimal({VALUE: ' bad '}), 2989);
+    t.strictEqual(blocks.hexToDecimal({VALUE: 'not hex'}), 0);
+    t.strictEqual(blocks.binToDecimal({VALUE: '0b1010'}), 10);
+    t.strictEqual(blocks.binToDecimal({VALUE: '-101'}), -5);
+    t.strictEqual(blocks.binToDecimal({VALUE: '102'}), 0);
+    t.end();
+});
