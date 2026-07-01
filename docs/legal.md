@@ -6,6 +6,8 @@ This page is informational and is not legal advice.
 
 Amethyst is a fork of TurboWarp and Scratch-related open-source projects. It is not affiliated with, endorsed by, or sponsored by Scratch, the Scratch Foundation, MIT, or TurboWarp.
 
+Copyright (C) 2026 Amethyst contributors.
+
 Recommended public wording:
 
 ```text
@@ -47,6 +49,10 @@ scratch-storage  BSD-3-Clause
 
 These declarations come from the package metadata in this repository. If package metadata changes, update this page.
 
+The root `LICENSE` file contains GPL-3.0 because the main Amethyst editor distribution includes GPL-licensed components. This does not relicense every file. MPL-covered files remain MPL-2.0, BSD-covered files remain BSD-3-Clause, and GPL-covered files remain GPL-3.0-compatible.
+
+See the root `NOTICE.md` file for the current component license map.
+
 ## What This Means Practically
 
 - Keep upstream copyright notices.
@@ -55,6 +61,7 @@ These declarations come from the package metadata in this repository. If package
 - Do not hide that Amethyst is forked from TurboWarp/Scratch-related projects.
 - Do not use Scratch/TurboWarp branding in a way that implies endorsement.
 - Do not remove required legal text just because the product UI says Amethyst.
+- Add new Amethyst copyright notices only for Amethyst changes, not for upstream work.
 
 ## Branding Rule
 

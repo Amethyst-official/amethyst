@@ -108,4 +108,6 @@ Not planned for v1:
 
 Amethyst is a fork of TurboWarp and Scratch-related open-source projects. It is not affiliated with, endorsed by, or sponsored by Scratch, the Scratch Foundation, MIT, or TurboWarp.
 
+The root license is GPL-3.0 because the main editor distribution includes GPL-licensed components. Some components remain under MPL-2.0 or BSD-3-Clause as noted in [NOTICE.md](NOTICE.md).
+
 Scratch is a project of the Scratch Foundation. TurboWarp is a separate open-source project. Three.js is used for 3D rendering. See [Legal and Credits](docs/legal.md) for more detail.
