@@ -1,7 +1,7 @@
 {
-  "short_name": "TurboWarp",
-  "name": "TurboWarp",
-  "description": "Mod of Scratch 3 with a compiler, dark mode, and more features.",
+  "short_name": "Amethyst",
+  "name": "Amethyst",
+  "description": "Scratch-style 3D editor for making model actors, camera movement, lights, and 3D worlds with simple blocks.",
   "icons": [
     {
       "src": "images/192.png",
