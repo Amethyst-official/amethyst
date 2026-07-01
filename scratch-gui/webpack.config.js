@@ -195,8 +195,8 @@ module.exports = [
                 ...htmlWebpackPluginCommon
             }),
             new HtmlWebpackPlugin({
-                chunks: ['player'],
-                template: 'src/playground/index.ejs',
+                chunks: [],
+                template: 'src/playground/home.ejs',
                 filename: 'index.html',
                 title: `${APP_NAME} - Scratch in 3D`,
                 ...htmlWebpackPluginCommon
