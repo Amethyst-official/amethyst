@@ -61,12 +61,6 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
             </value>
         </block>
         ${blockSeparator}
-        <block type="motion_goto">
-            <value name="TO">
-                <shadow type="motion_goto_menu">
-                </shadow>
-            </value>
-        </block>
         <block type="motion_gotoxy">
             <value name="X">
                 <shadow id="movex" type="math_number">
@@ -81,17 +75,6 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
             <value name="Z">
                 <shadow id="movez" type="math_number">
                     <field name="NUM">0</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="motion_glideto" id="motion_glideto">
-            <value name="SECS">
-                <shadow type="math_number">
-                    <field name="NUM">1</field>
-                </shadow>
-            </value>
-            <value name="TO">
-                <shadow type="motion_glideto_menu">
                 </shadow>
             </value>
         </block>
@@ -125,13 +108,6 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
                 </shadow>
             </value>
         </block>
-        <block type="motion_pointtowards">
-            <value name="TOWARDS">
-                <shadow type="motion_pointtowards_menu">
-                </shadow>
-            </value>
-        </block>
-        ${blockSeparator}
         <block type="motion_changexby">
             <value name="DX">
                 <shadow type="math_number">

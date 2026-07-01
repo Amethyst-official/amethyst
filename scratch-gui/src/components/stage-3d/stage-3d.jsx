@@ -228,9 +228,6 @@ const Stage3D = ({height, vm, width}) => {
         fillLight.position.set(-220, 160, -160);
         scene.add(fillLight);
 
-        const grid = new THREE.GridHelper(40000, 80, 0x445f72, 0x8da1ad);
-        grid.position.y = -1;
-        scene.add(grid);
         const groundMaterial = new THREE.MeshBasicMaterial({
             color: new THREE.Color('#d7eef7'),
             depthWrite: false
@@ -791,7 +788,6 @@ const Stage3D = ({height, vm, width}) => {
                     activeBackgroundTexture = null;
                 }
                 scene.environment = null;
-                grid.visible = true;
                 groundMesh.visible = true;
                 groundMaterial.color.set(backgroundState.groundColor || '#d7eef7');
                 const fogAmount = Math.max(0, Math.min(100, backgroundState.fogAmount || 0));
@@ -811,7 +807,6 @@ const Stage3D = ({height, vm, width}) => {
                         }
                         scene.background = texture;
                         scene.environment = texture;
-                        grid.visible = false;
                         groundMesh.visible = false;
                         activeBackgroundTexture = texture;
                     };
@@ -820,7 +815,6 @@ const Stage3D = ({height, vm, width}) => {
                         // eslint-disable-next-line no-console
                         console.warn('Amethyst failed to load scene background', error);
                         scene.background = new THREE.Color(backgroundState.skyColor || '#8fc6ff');
-                        grid.visible = true;
                         groundMesh.visible = true;
                     };
                     if (backgroundState.mode === 'hdri') {
