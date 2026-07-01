@@ -1,5 +1,8 @@
 # Amethyst
 
+> Official page for now: https://amethyst3d.pages.dev/  
+> This may change later.
+
 Amethyst is a 3D block-coding editor based on TurboWarp, with Scratch-style blocks and Three.js-powered actors.
 
 > Status: early development. The web editor is the current focus. Desktop packaging comes later.
