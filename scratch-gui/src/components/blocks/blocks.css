@@ -138,7 +138,7 @@
     width: 1rem;
     height: 1rem;
     margin: 0;
-    accent-color: #CC69FF;
+    accent-color: #8169FF;
 }
 
 .network-safety-actions {
@@ -165,7 +165,7 @@
 
 .network-safety-continue {
     color: $ui-white;
-    background: #CC69FF;
+    background: #8169FF;
 }
 
 .network-safety-continue:disabled {

@@ -12,7 +12,7 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 0.82rem;
   font-weight: 800;
-  box-shadow: inset 0 0 0 1px rgba(204, 105, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(129, 105, 255, 0.35);
 }
 
 .amethyst-ai-launcher:hover,
@@ -32,7 +32,7 @@
   width: min(28rem, calc(100vw - 2rem));
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   overflow: hidden;
-  border: 1px solid rgba(204, 105, 255, 0.55);
+  border: 1px solid rgba(129, 105, 255, 0.55);
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 10px 32px rgba(53, 17, 72, 0.22);
@@ -45,7 +45,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.7rem 0.8rem;
-  background: #cc69ff;
+  background: #8169ff;
   color: #ffffff;
 }
 
@@ -82,7 +82,7 @@
 .amethyst-ai-settings select,
 .amethyst-ai-settings input {
   min-width: 0;
-  border: 1px solid rgba(204, 105, 255, 0.35);
+  border: 1px solid rgba(129, 105, 255, 0.35);
   border-radius: 6px;
   padding: 0.42rem 0.5rem;
   color: #312042;
@@ -103,7 +103,7 @@
   border: 0;
   border-radius: 6px;
   padding: 0.42rem 0.65rem;
-  background: #cc69ff;
+  background: #8169ff;
   color: #ffffff;
   font: inherit;
   font-size: 0.75rem;
@@ -137,14 +137,14 @@
 
 .amethyst-ai-message.user {
   align-self: flex-end;
-  background: #cc69ff;
+  background: #8169ff;
   color: #ffffff;
 }
 
 .amethyst-ai-approval {
   width: 88%;
   max-width: 88%;
-  border: 1px solid rgba(204, 105, 255, 0.32);
+  border: 1px solid rgba(129, 105, 255, 0.32);
   background: #fbf4ff;
 }
 
@@ -180,7 +180,7 @@
   border: 0;
   border-radius: 6px;
   padding: 0.4rem 0.65rem;
-  background: #cc69ff;
+  background: #8169ff;
   color: #ffffff;
   font: inherit;
   font-size: 0.75rem;
@@ -198,7 +198,7 @@
 }
 
 .amethyst-ai-context {
-  border-top: 1px solid rgba(204, 105, 255, 0.18);
+  border-top: 1px solid rgba(129, 105, 255, 0.18);
   background: #fbf7ff;
   font-size: 0.72rem;
 }
@@ -224,14 +224,14 @@
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
   padding: 0.65rem;
-  border-top: 1px solid rgba(204, 105, 255, 0.18);
+  border-top: 1px solid rgba(129, 105, 255, 0.18);
 }
 
 .amethyst-ai-compose textarea {
   min-height: 4.25rem;
   max-height: 9rem;
   resize: vertical;
-  border: 1px solid rgba(204, 105, 255, 0.38);
+  border: 1px solid rgba(129, 105, 255, 0.38);
   border-radius: 6px;
   padding: 0.55rem;
   color: #312042;
@@ -242,8 +242,8 @@
 .amethyst-ai-compose textarea:focus,
 .amethyst-ai-settings select:focus,
 .amethyst-ai-settings input:focus {
-  border-color: #cc69ff;
-  box-shadow: 0 0 0 3px rgba(204, 105, 255, 0.18);
+  border-color: #8169ff;
+  box-shadow: 0 0 0 3px rgba(129, 105, 255, 0.18);
   outline: none;
 }
 
@@ -252,7 +252,7 @@
   border: 0;
   border-radius: 6px;
   padding: 0.65rem 0.85rem;
-  background: #cc69ff;
+  background: #8169ff;
   color: #ffffff;
   font: inherit;
   font-weight: 800;

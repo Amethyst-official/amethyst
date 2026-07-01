@@ -70,20 +70,20 @@ test('Amethyst projects preserve 3D actor and scene data through zipped save/loa
                                 position: {x: 1, y: 2, z: 3},
                                 rotation: {x: 4, y: 5, z: 6},
                                 scale: {x: 1.1, y: 1.2, z: 1.3},
-                                color: '#cc69ff'
+                                color: '#8169ff'
                             }
                         }
                     }
                 ],
                 currentModelCostume: 0,
                 modelPivot: {x: 7, y: 8, z: 9},
-                modelColor: '#cc69ff',
+                modelColor: '#8169ff',
                 modelPartTransforms: {
                     Head: {
                         position: {x: 1, y: 2, z: 3},
                         rotation: {x: 4, y: 5, z: 6},
                         scale: {x: 1.1, y: 1.2, z: 1.3},
-                        color: '#cc69ff'
+                        color: '#8169ff'
                     }
                 }
             }
@@ -138,13 +138,13 @@ test('Amethyst projects preserve 3D actor and scene data through zipped save/loa
                 position: {x: 1, y: 2, z: 3},
                 rotation: {x: 4, y: 5, z: 6},
                 scale: {x: 1.1, y: 1.2, z: 1.3},
-                color: '#cc69ff'
+                color: '#8169ff'
             }
         }
     }]);
     t.same(actor.modelPivot, {x: 7, y: 8, z: 9});
     t.same(actor.modelPartTransforms.Head.position, {x: 1, y: 2, z: 3});
-    t.equal(actor.modelColor, '#cc69ff');
+    t.equal(actor.modelColor, '#8169ff');
     t.same(loadedVM.runtime.scratch3dScene.background, {
         mode: 'sky',
         skyColor: '#112233',

@@ -71,7 +71,7 @@ a {
 }
 
 .home-header h1 {
-    color: #cc69ff;
+    color: #8169ff;
     font-size: 2rem;
     line-height: 1.15;
 }
@@ -104,14 +104,14 @@ a {
 }
 
 .home-action:hover {
-    border-color: #cc69ff;
-    box-shadow: 0 2px 0 rgba(204, 105, 255, 0.45);
+    border-color: #8169ff;
+    box-shadow: 0 2px 0 rgba(129, 105, 255, 0.45);
 }
 
 .primary-action {
-    background: #cc69ff;
+    background: #8169ff;
     color: $ui-white;
-    border-color: #cc69ff;
+    border-color: #8169ff;
 }
 
 .home-action-icon {
