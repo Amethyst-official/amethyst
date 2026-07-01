@@ -240,6 +240,11 @@ const Stage3D = ({height, vm, width}) => {
         groundMesh.position.y = -1.5;
         scene.add(groundMesh);
 
+        const debugGrid = new THREE.GridHelper(40000, 80, 0x8169ff, 0x8f9aa8);
+        debugGrid.position.y = -1.45;
+        debugGrid.visible = false;
+        scene.add(debugGrid);
+
         const debugGroup = new THREE.Group();
         debugGroup.visible = false;
         scene.add(debugGroup);
@@ -846,6 +851,7 @@ const Stage3D = ({height, vm, width}) => {
             syncDebugAccent();
             const debugMode = stageModeRef.current === 'debug';
             debugGroup.visible = debugMode;
+            debugGrid.visible = debugMode;
             if (debugMode) {
                 const debugStart = camera.position.clone();
                 const debugEnd = controls.target.clone();
@@ -889,6 +895,9 @@ const Stage3D = ({height, vm, width}) => {
             if (activeBackgroundTexture) {
                 activeBackgroundTexture.dispose();
             }
+            debugGrid.geometry.dispose();
+            const debugGridMaterials = Array.isArray(debugGrid.material) ? debugGrid.material : [debugGrid.material];
+            debugGridMaterials.forEach(material => material.dispose());
             groundMesh.geometry.dispose();
             groundMaterial.dispose();
             scene.remove(debugGroup);
@@ -962,9 +971,6 @@ const Stage3D = ({height, vm, width}) => {
                             </dl>
                         </div>
                     ) : null}
-                    <div className={styles.debugReticle}>
-                        {'target marker uses the accent ring'}
-                    </div>
                 </div>
             ) : null}
             {loadError ? (
