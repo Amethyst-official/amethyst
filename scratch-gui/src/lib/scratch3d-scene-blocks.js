@@ -281,6 +281,48 @@ export const scene3DBlockTypes = [
     'scene3d_nextbackdrop'
 ];
 
+const customCategoryColours = {
+    camera: {
+        colour: '#4c7dff',
+        colourSecondary: '#6b93ff',
+        colourTertiary: '#3151a8'
+    },
+    environment: {
+        colour: '#2fb86f',
+        colourSecondary: '#45ca83',
+        colourTertiary: '#21804e'
+    },
+    mouse: {
+        colour: '#00a9a5',
+        colourSecondary: '#22bfbc',
+        colourTertiary: '#047a77'
+    },
+    network: {
+        colour: '#0f8f8c',
+        colourSecondary: '#22aaa7',
+        colourTertiary: '#047a77'
+    },
+    media: {
+        colour: '#9966ff',
+        colourSecondary: '#855cd6',
+        colourTertiary: '#774dcb'
+    }
+};
+
+const scene3DEnvironmentBlockTypes = new Set([
+    'scene3d_setambientlight',
+    'scene3d_setkeylight',
+    'scene3d_setsuncolor',
+    'scene3d_setsunangle',
+    'scene3d_setkeylightposition',
+    'scene3d_setskycolor',
+    'scene3d_setgroundcolor',
+    'scene3d_setfogamount',
+    'scene3d_setenvironmentpreset',
+    'scene3d_switchbackdrop',
+    'scene3d_nextbackdrop'
+]);
+
 const xyzArgs = [
     {
         type: 'input_value',
@@ -326,6 +368,20 @@ const environmentPresetArg = [{
         ['studio', 'studio']
     ]
 }];
+
+const withoutColourExtension = extensions => extensions.filter(extension => !extension.startsWith('colours_'));
+
+const coloursForBlockType = type => {
+    if (type.startsWith('scene3d_')) {
+        return scene3DEnvironmentBlockTypes.has(type) ?
+            customCategoryColours.environment :
+            customCategoryColours.camera;
+    }
+    if (type.startsWith('mouse_')) return customCategoryColours.mouse;
+    if (type.startsWith('network_')) return customCategoryColours.network;
+    if (type.startsWith('media_')) return customCategoryColours.media;
+    return null;
+};
 
 const scratch3DCoreBlockSpecs = [
     {
@@ -783,7 +839,8 @@ const defineScratch3DSceneBlocks = ScratchBlocks => {
         message0: ScratchBlocks.Msg[block.messageKey],
         args0: block.args0,
         category,
-        extensions: ['colours_motion', 'shape_statement']
+        ...coloursForBlockType(block.type),
+        extensions: ['shape_statement']
     })));
 
     ScratchBlocks.defineBlocksWithJsonArray(scratch3DCoreBlockSpecs.map(block => ({
@@ -794,7 +851,10 @@ const defineScratch3DSceneBlocks = ScratchBlocks => {
             ScratchBlocks.Categories[block.category] :
             block.category,
         checkboxInFlyout: block.checkboxInFlyout,
-        extensions: block.extensions
+        ...(coloursForBlockType(block.type) || {}),
+        extensions: coloursForBlockType(block.type) ?
+            withoutColourExtension(block.extensions) :
+            block.extensions
     })));
 };
 

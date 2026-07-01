@@ -310,9 +310,32 @@ const Stage3D = ({height, vm, width}) => {
         let pointerLockWasRequested = false;
         let lastDebugSnapshotAt = 0;
         let lastCameraSmoothAt = performance.now();
+        let isApplyingStoredCamera = false;
         const firstPersonEuler = new THREE.Euler(0, 0, 0, 'YXZ');
         let thirdPersonYaw = Math.atan2(camera.position.x, camera.position.z);
         let thirdPersonPitch = 0.25;
+
+        const vectorToState = value => ({
+            x: Number(value.x.toFixed(3)),
+            y: Number(value.y.toFixed(3)),
+            z: Number(value.z.toFixed(3))
+        });
+
+        const commitLiveCameraState = () => {
+            if (isApplyingStoredCamera || !vm || !vm.runtime) return;
+            const sceneState = vm.runtime.scratch3dScene;
+            if (!sceneState || !sceneState.camera) return;
+            const cameraFollow = sceneState.camera.follow || {};
+            const mouseState = getMouseState(vm);
+            if (cameraFollow.enabled || mouseState.mode !== 'normal') return;
+
+            sceneState.camera.position = vectorToState(camera.position);
+            sceneState.camera.target = vectorToState(controls.target);
+            if (Array.isArray(sceneState.backdrops) && sceneState.backdrops[sceneState.currentBackdrop]) {
+                sceneState.backdrops[sceneState.currentBackdrop].camera = sceneState.camera;
+            }
+        };
+        controls.addEventListener('change', commitLiveCameraState);
 
         const getFollowTarget = targetId => {
             const targets = (vm && vm.runtime && vm.runtime.targets) || [];
@@ -718,11 +741,13 @@ const Stage3D = ({height, vm, width}) => {
                 1 :
                 THREE.MathUtils.clamp(elapsed / (smoothingDuration * 1000), 0.02, 1);
 
+            isApplyingStoredCamera = true;
             camera.position.lerp(cameraPosition, alpha);
             controls.target.lerp(cameraTarget, alpha);
             camera.fov = typeof cameraState.fov === 'number' ? cameraState.fov : 55;
             camera.updateProjectionMatrix();
             controls.update();
+            isApplyingStoredCamera = false;
         };
 
         const syncSceneControls = () => {
@@ -858,6 +883,7 @@ const Stage3D = ({height, vm, width}) => {
         return () => {
             disposed = true;
             if (frameId !== null) cancelAnimationFrame(frameId);
+            controls.removeEventListener('change', commitLiveCameraState);
             controls.dispose();
             dracoLoader.dispose();
             renderer.domElement.removeEventListener('mousemove', postMouseMove);
