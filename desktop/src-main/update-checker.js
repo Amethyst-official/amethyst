@@ -4,7 +4,7 @@ const packageJSON = require('../package.json');
 const privilegedFetch = require('./fetch');
 
 const currentVersion = packageJSON.version;
-const URL = 'https://desktop.turbowarp.org/version.json';
+const UPDATE_MANIFEST_URL = process.env.AMETHYST_UPDATE_MANIFEST_URL || '';
 
 /**
  * Determines whether the update checker is even allowed to be enabled
@@ -16,8 +16,7 @@ const isUpdateCheckerAllowed = () => {
     return false;
   }
 
-  // Must be enabled in package.json
-  return !!packageJSON.tw_update;
+  return !!UPDATE_MANIFEST_URL && !!packageJSON.amethyst_update;
 };
 
 const checkForUpdates = async () => {
@@ -25,7 +24,7 @@ const checkForUpdates = async () => {
     return;
   }
 
-  const json = await privilegedFetch.json(URL);
+  const json = await privilegedFetch.json(UPDATE_MANIFEST_URL);
   const latestStable = json.latest;
   const latestUnstable = json.latest_unstable;
   const oldestSafe = json.oldest_safe;

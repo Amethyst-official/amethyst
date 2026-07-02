@@ -1,6 +1,6 @@
-const PLATFORM_NAME = 'blockinum3D';
-const APP_NAME = 'blockinum3D';
-const PACKAGER_NAME = 'blockinum3D Packager';
+const PLATFORM_NAME = 'Amethyst';
+const APP_NAME = 'Amethyst';
+const PACKAGER_NAME = 'Amethyst Packager';
 
 module.exports = {
   PLATFORM_NAME,

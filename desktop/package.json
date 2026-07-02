@@ -1,11 +1,11 @@
 {
-  "name": "blockinum3d-desktop",
-  "description": "A Scratch-style 3D block programming app powered by Three.js.",
+  "name": "amethyst-desktop",
+  "description": "Amethyst is a Scratch-style 3D block programming app powered by Three.js.",
   "version": "0.1.0",
   "license": "GPL-3.0",
   "author": {
-    "email": "contact@turbowarp.org",
-    "name": "Thomas Weber"
+    "email": "contact@amethyst3d.pages.dev",
+    "name": "Amethyst contributors"
   },
   "type": "commonjs",
   "scripts": {
@@ -14,7 +14,7 @@
     "webpack:watch": "webpack --watch",
     "webpack:prod": "cross-env NODE_ENV=production webpack",
     "electron:start": "electron src-main/entrypoint.js",
-    "electron:package:dir": "electron-builder --dir"
+    "electron:package:dir": "electron-builder --dir --config.electronDist=node_modules/electron/dist"
   },
   "dependencies": {
     "semver": "^7.7.3"
@@ -50,19 +50,19 @@
       "terser-webpack-plugin": "^4.2.3"
     }
   },
-  "homepage": "https://desktop.turbowarp.org/",
+  "homepage": "https://amethyst3d.pages.dev/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TurboWarp/desktop.git"
+    "url": "https://github.com/Amethyst-official/amethyst.git"
   },
   "bugs": {
-    "url": "https://github.com/TurboWarp/desktop/issues",
-    "email": "contact@turbowarp.org"
+    "url": "https://github.com/Amethyst-official/amethyst/issues",
+    "email": "contact@amethyst3d.pages.dev"
   },
   "main": "./src-main/entrypoint.js",
   "build": {
-    "appId": "org.blockinum3d.desktop",
-    "productName": "blockinum3D",
+    "appId": "org.amethyst3d.desktop",
+    "productName": "Amethyst",
     "files": [
       "node_modules/**/*",
       "src-main/**/*",
@@ -98,12 +98,12 @@
     },
     "appx": {
       "artifactName": "${productName}-MS-Store-${version}-${arch}.${ext}",
-      "applicationId": "TurboWarp",
-      "displayName": "TurboWarp",
-      "identityName": "45747ThomasWeber.TurboWarpDesktop",
+      "applicationId": "Amethyst",
+      "displayName": "Amethyst",
+      "identityName": "AmethystOfficial.AmethystDesktop",
       "publisher": "CN=18FA7D4F-01BF-49F2-BF56-782DCEA49C69",
-      "publisherDisplayName": "Thomas Weber",
-      "backgroundColor": "#4c97ff",
+      "publisherDisplayName": "Amethyst contributors",
+      "backgroundColor": "#8169FF",
       "showNameOnTiles": true,
       "languages": [
         "en-US",
@@ -152,16 +152,16 @@
       "provisioningProfile": "build/development.provisionprofile"
     },
     "linux": {
-      "executableName": "blockinum3d",
+      "executableName": "amethyst",
       "artifactName": "${productName}-${os}-${arch}-${version}.${ext}",
       "icon": "./build/",
       "synopsis": "Scratch-style 3D block programming.",
-      "description": "blockinum3D is a Scratch-style 3D block programming app powered by Three.js.",
+      "description": "Amethyst is a Scratch-style 3D block programming app powered by Three.js.",
       "category": "Development",
       "desktop": {
         "entry": {
-          "StartupWMClass": "blockinum3d",
-          "Keywords": "scratch;"
+          "StartupWMClass": "amethyst",
+          "Keywords": "scratch;3d;amethyst;"
         }
       },
       "extraFiles": [
@@ -180,7 +180,7 @@
       ]
     },
     "snap": {
-      "summary": "Scratch mod with a compiler, dark mode, a bunch of addons, and more.",
+      "summary": "Scratch-style 3D block programming powered by Three.js.",
       "allowNativeWayland": true,
       "plugs": [
         "default",
@@ -195,25 +195,11 @@
     },
     "fileAssociations": [
       {
-        "ext": "sb3",
-        "name": "Scratch 3 Project",
-        "description": "Scratch 3 Project",
+        "ext": "amx",
+        "name": "Amethyst Project",
+        "description": "Amethyst 3D Project",
         "role": "Editor",
-        "mimeType": "application/x.scratch.sb3"
-      },
-      {
-        "ext": "sb2",
-        "name": "Scratch 2 Project",
-        "description": "Scratch 2 Project",
-        "role": "Editor",
-        "mimeType": "application/x.scratch.sb2"
-      },
-      {
-        "ext": "sb",
-        "name": "Scratch 1 Project",
-        "description": "Scratch 1 Project",
-        "role": "Editor",
-        "mimeType": "application/x.scratch.sb"
+        "mimeType": "application/x.amethyst.amx"
       }
     ]
   },

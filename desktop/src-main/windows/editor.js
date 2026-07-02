@@ -171,14 +171,15 @@ const getUnsafePaths = () => {
       app: APP_NAME,
     },
 
-    // TurboWarp Desktop defaults
+    // Upstream app defaults; keep these blocked so users do not accidentally
+    // save projects inside another app install or data directory.
     {
       path: path.join(appData, 'turbowarp-desktop'),
-      app: 'TurboWarp Desktop'
+      app: 'Upstream desktop editor'
     },
     {
       path: path.join(localPrograms, 'TurboWarp'),
-      app: 'TurboWarp Desktop'
+      app: 'Upstream desktop editor'
     },
 
     // Scratch Desktop defaults
@@ -362,8 +363,8 @@ class EditorWindow extends ProjectRunningWindow {
         defaultPath: settings.lastDirectory,
         filters: [
           {
-            name: 'Scratch Project',
-            extensions: ['sb3', 'sb2', 'sb'],
+            name: 'Amethyst Project',
+            extensions: ['amx'],
           }
         ]
       });
@@ -389,8 +390,8 @@ class EditorWindow extends ProjectRunningWindow {
         defaultPath: path.join(settings.lastDirectory, suggestedName),
         filters: [
           {
-            name: 'Scratch 3 Project',
-            extensions: ['sb3'],
+            name: 'Amethyst Project',
+            extensions: ['amx'],
           }
         ]
       });

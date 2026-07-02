@@ -9,6 +9,10 @@ out/
 coverage/
 .nyc_output/
 
+# Electron Builder reads committed packaging assets from this folder.
+!desktop/build/
+!desktop/build/**
+
 # Desktop/package artifacts
 *.exe
 *.msi

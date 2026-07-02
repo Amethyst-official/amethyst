@@ -3,8 +3,10 @@
 // itself have errors.
 
 const {app, dialog} = require('electron');
+const {APP_NAME} = require('./brand');
 
-const APP_NAME = 'blockinum3D';
+app.setName(APP_NAME);
+
 const stringifyError = (error) => (error && error.stack) ? error.stack : error;
 
 try {

@@ -28,7 +28,7 @@ const writeCurrentVersion = async () => {
 };
 
 const openUpdatePage = () => {
-  openExternal('https://desktop.turbowarp.org/');
+  openExternal(packageJSON.homepage || 'https://amethyst3d.pages.dev/');
 };
 
 /**
@@ -143,7 +143,7 @@ const migrate = async () => {
       message: translate('downgrade-warning.title'),
       detail: translate('downgrade-warning.message')
         .replace('{APP_NAME}', APP_NAME)
-        .replace('{website}', 'desktop.turbowarp.org')
+        .replace('{website}', 'amethyst3d.pages.dev')
         .replace('{debugInfo}', changes.join(', ')),
       buttons: [
         translate('downgrade-warning.exit'),

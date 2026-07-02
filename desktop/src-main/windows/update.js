@@ -2,6 +2,7 @@ const AbstractWindow = require('./abstract');
 const {translate, getLocale, getStrings} = require('../l10n');
 const {APP_NAME} = require('../brand');
 const openExternal = require('../open-external');
+const packageJSON = require('../../package.json');
 
 class UpdateWindow extends AbstractWindow {
   constructor (currentVersion, latestVersion, security) {
@@ -31,7 +32,8 @@ class UpdateWindow extends AbstractWindow {
       const params = new URLSearchParams();
       params.set('from', currentVersion);
       params.set('to', latestVersion);
-      openExternal(`https://desktop.turbowarp.org/update_available?${params}`);
+      const updatePage = packageJSON.homepage || 'https://amethyst3d.pages.dev/';
+      openExternal(`${updatePage.replace(/\/$/, '')}/?${params}`);
     });
 
     const ignore = (permanently) => {
