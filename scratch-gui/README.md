@@ -1,14 +1,24 @@
-scratch-gui modified for use in [TurboWarp](https://turbowarp.org/)
+# Amethyst GUI
+
+Amethyst's editor UI, based on scratch-gui and the upstream block-editor source stack.
 
 ## Setup
 
-See https://docs.turbowarp.org/development/getting-started to setup the complete TurboWarp environment.
+From the repository root, the usual web-editor development path is:
+
+```bash
+cd scratch-gui
+npm install
+npm start
+```
 
 If you just want to play with the GUI then it's the same process as upstream scratch-gui.
 
 ## License
 
-TurboWarp's modifications to Scratch are licensed under the GNU General Public License v3.0. See LICENSE or https://www.gnu.org/licenses/ for details.
+Amethyst's GUI changes are licensed under the GNU General Public License v3.0. See LICENSE or https://www.gnu.org/licenses/ for details.
+
+This package also contains code and changes from upstream Scratch-related open-source projects. Keep their copyright and license notices intact.
 
 The following is the original license for scratch-gui, which we are required to retain. This is NOT the license of this project.
 

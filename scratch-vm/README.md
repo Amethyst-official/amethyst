@@ -1,12 +1,12 @@
-## TurboWarp/scratch-vm
+## Amethyst VM
 
-Modified Scratch VM with a JIT compiler and more features.
+Modified Scratch VM used by Amethyst for block execution, 3D actor state, camera/environment blocks, and project behavior.
 
-This is a drop-in replacement for LLK/scratch-vm.
+This is not meant to be a clean upstream drop-in package. It is part of the Amethyst product stack.
 
 ## Setup
 
-See https://github.com/TurboWarp/scratch-gui/wiki/Getting-Started to setup the complete TurboWarp environment.
+Use the repository-level setup docs for the full Amethyst environment.
 
 If you just want to play with the VM then it's the same process as upstream scratch-vm.
 
@@ -16,9 +16,9 @@ If you only use the standard reporter, boolean, and command block types, everyth
 
 ## Compiler Overview
 
-For a high-level overview of how the compiler works, see https://docs.turbowarp.org/how
+For compiler internals, read the code in `src/compiler`.
 
-For more technical information, read the code in src/compiler.
+Some compiler behavior still comes from upstream fork history; keep that attribution in legal/credit docs.
 
 ## Public API
 

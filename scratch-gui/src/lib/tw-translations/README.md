@@ -1,1 +1,1 @@
-generated-translations.json is managed by https://github.com/TurboWarp/scratch-l10n
+generated-translations.json is generated translation data inherited from the upstream localization pipeline. Amethyst should eventually own its own translation sync.

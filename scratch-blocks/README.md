@@ -1,8 +1,10 @@
-# TurboWarp/scratch-blocks
+# Amethyst scratch-blocks
 
 ## Playgrounds
 
- - **Vertical blocks**: https://turbowarp.github.io/scratch-blocks/tests/vertical_playground_compressed.html
+This package contains the block definitions and block rendering used by Amethyst.
+
+ - **Vertical blocks**: open `tests/vertical_playground_compressed.html` locally.
 
 ## Local development
 

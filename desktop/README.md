@@ -1,12 +1,12 @@
-# TurboWarp Desktop
+# Amethyst Desktop
 
-TurboWarp as a desktop app.
+Desktop shell work for Amethyst.
 
-If you're looking for downloads, head to: https://desktop.turbowarp.org/
+The web editor is the current priority. This folder is kept as the Electron/desktop packaging path for later Amethyst builds.
 
 Licensed under the GPLv3.0. See LICENSE for more information.
 
-Parts of this repository are based on [LLK/scratch-desktop](https://github.com/LLK/scratch-desktop).
+Parts of this repository are based on upstream desktop packaging work and [LLK/scratch-desktop](https://github.com/LLK/scratch-desktop). Keep those credits and licenses intact in the root legal docs.
 
 ## Website
 
@@ -14,40 +14,17 @@ The website source code is in the `docs` folder.
 
 ## Development
 
-We use submodules, so clone using:
-
-```bash
-git clone --recursive https://github.com/TurboWarp/desktop turbowarp-desktop
-```
-
-or run this after cloning:
-
-```bash
-git submodule init
-git submodule update
-```
-
-Install dependencies using:
+This folder still follows the original Electron package layout. Install dependencies using:
 
 ```bash
 npm ci
 ```
 
-Then fetch extra library, packager, and extension files using:
+Then fetch extra library, packager, and extension files when desktop packaging is being worked on:
 
 ```bash
 npm run fetch
 ```
-
-Repeat the three previous sets of commands every time you pull changes from GitHub.
-
-Due to the security requirements mandated by custom extensions existing, our desktop app is significantly more complicated than Scratch's.
-
- - **src-main** is what runs in Electron's main process. There is no build step; this code is included as-is. `src-main/entrypoint.js` is the entry point to the entire app.
- - **src-renderer-webpack** runs in an Electron renderer process to make the editor work. This is built by webpack as **dist-renderer-webpack**.
- - **src-renderer** also runs in an Electron renderer process, but without webpack. This is used for things like the privacy policy window.
- - **src-preload** runs as preload scripts in an Electron renderer process. They export glue functions to allow renderer and main to talk to each other in a somewhat controlled manner.
- - **dist-library-files** and **dist-extensions** contain additional static resources managed by `npm run fetch`
 
 To build the webpack portions in src-renderer-webpack for development builds, run this:
 
@@ -61,11 +38,19 @@ You can also run this instead for source file changes to immediately trigger reb
 npm run webpack:watch
 ```
 
-Once you have everything compiled and fetched, you are ready to package it up for Electron. For development, start a development Electron instance with:
+Once you have everything compiled and fetched, start a development Electron instance with:
 
 ```bash
 npm run electron:start
 ```
+
+Due to the security requirements mandated by custom extensions existing, the desktop app is significantly more complicated than the web editor.
+
+ - **src-main** is what runs in Electron's main process. There is no build step; this code is included as-is. `src-main/entrypoint.js` is the entry point to the entire app.
+ - **src-renderer-webpack** runs in an Electron renderer process to make the editor work. This is built by webpack as **dist-renderer-webpack**.
+ - **src-renderer** also runs in an Electron renderer process, but without webpack. This is used for things like the privacy policy window.
+ - **src-preload** runs as preload scripts in an Electron renderer process. They export glue functions to allow renderer and main to talk to each other in a somewhat controlled manner.
+ - **dist-library-files** and **dist-extensions** contain additional static resources managed by `npm run fetch`
 
 In Linux, The app icon won't work in the development version, but it will work in the packaged version.
 
@@ -73,7 +58,7 @@ We've found that development can work pretty well if you open two terminals side
 
 ## Linux sandbox helper error
 
-On some Linux distributions, Electron will crash with the message `The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /home/.../turbowarp-desktop/node_modules/electron/dist/chrome-sandbox is owned by root and has mode 4755.`. Notably we have seen this happen on Debian 10 and earlier and Ubuntu 24.04 and later.
+On some Linux distributions, Electron will crash with the message `The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /home/.../amethyst-desktop/node_modules/electron/dist/chrome-sandbox is owned by root and has mode 4755.`. Notably this can happen on Debian 10 and earlier and Ubuntu 24.04 and later.
 
 For development, you can run these commands to enable unprivileged user namespaces until you reboot:
 
@@ -114,28 +99,24 @@ You can typically only package for a certain operating system while on that oper
 
 ## Code signing policy
 
-TurboWarp Desktop uses a free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+The upstream desktop project used free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/). Amethyst has not set up production desktop signing yet.
 
  * Approvers:
    * [GarboMuffin](https://github.com/GarboMuffin)
- * Privacy policy: https://desktop.turbowarp.org/privacy.html
+ * Amethyst signing and privacy policy details still need to be finalized before desktop release.
 
 ## Advanced customizations
 
-TurboWarp Desktop lets you configure custom JS and CSS without rebuilding the app.
+The desktop shell lets you configure custom JS and CSS without rebuilding the app.
 
-Find TurboWarp Desktop's data path by using the list below or by clicking "?" in the top right corner, then "Desktop Settings", then "Open User Data", then opening the highlighted folder, or refer to this list:
+Find Amethyst Desktop's data path by using the list below or by clicking "?" in the top right corner, then "Desktop Settings", then "Open User Data", then opening the highlighted folder, or refer to this list:
 
- - Windows (except Microsoft Store): `%APPDATA%/turbowarp-desktop`
- - Microsoft Store: Open `%LOCALAPPDATA%/Packages`, find the folder with the word `TurboWarpDesktop` in it, then open `LocalCache/Roaming/turbowarp-desktop`
- - macOS (except Mac App Store): `~/Library/Application Support/turbowarp-desktop`
- - Mac App Store: `~/Library/Containers/org.turbowarp.desktop/Data/Library/Application Support/turbowarp-desktop` (note that the `org.turbowarp.desktop` part may appear as `TurboWarp` in Finder)
- - Linux (except Flatpak and Snap): `~/.config/turbowarp-desktop`
- - Linux (Flatpak): `~/.var/app/org.turbowarp.TurboWarp/config/turbowarp-desktop`
- - Linux (Snap): `~/snap/turbowarp-desktop/current/.config/turbowarp-desktop`
+ - Windows (except Microsoft Store): `%APPDATA%/amethyst-desktop`
+ - macOS (except Mac App Store): `~/Library/Application Support/amethyst-desktop`
+ - Linux (except Flatpak and Snap): `~/.config/amethyst-desktop`
 
-Create the file `userscript.js` in this folder to configure custom JS. Create the file `userstyle.css` in this folder to configure custom CSS. Completely restart TurboWarp Desktop (including all windows) to apply.
+Create the file `userscript.js` in this folder to configure custom JS. Create the file `userstyle.css` in this folder to configure custom CSS. Completely restart Amethyst Desktop (including all windows) to apply.
 
 ## Uninstall
 
-See https://desktop.turbowarp.org/uninstall
+Desktop uninstall docs will be added when Amethyst desktop packaging is active.
