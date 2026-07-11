@@ -47,12 +47,13 @@ describe('makeToolboxXML', () => {
         expect(xml).toContain('motion_turnyawby');
         expect(xml).toContain('motion_turnpitchby');
         expect(xml).toContain('motion_turnrollby');
+        expect(xml).not.toContain('motion_pointindirection');
         expect(xml).toContain('sensing_mousez');
         expect(xml).toContain('looks_setmodelcolor');
         expect(xml).not.toContain('looks_movemodelpoint');
-        expect(xml).toContain('looks_switchbackdropto');
-        expect(xml).toContain('looks_nextbackdrop');
-        expect(xml).toContain('looks_backdropnumbername');
+        expect(xml).not.toContain('looks_switchbackdropto');
+        expect(xml).not.toContain('looks_nextbackdrop');
+        expect(xml).not.toContain('looks_backdropnumbername');
         expect(xml).toContain('event_whenbackdropswitchesto');
         expect(xml).not.toContain('looks_say');
         expect(xml).not.toContain('looks_think');
@@ -86,11 +87,7 @@ describe('makeToolboxXML', () => {
         expect(xml).toContain('mouse_setthirdpersondistance');
         expect(xml).toContain('mouse_lock');
         expect(xml).toContain('mouse_unlock');
-        expect(xml).toContain('sensing_mousedown');
         expect(xml).toContain('mouse_buttondown');
-        expect(xml).toContain('sensing_mousex');
-        expect(xml).toContain('sensing_mousey');
-        expect(xml).toContain('sensing_mousez');
         expect(xml).toContain('mouse_deltax');
         expect(xml).toContain('mouse_deltay');
         expect(xml).toContain('mouse_mode');
@@ -107,6 +104,14 @@ describe('makeToolboxXML', () => {
         expect(xml).toContain('scene3d_stopfollowing');
         expect(xml).toContain('scene3d_setfollowdistance');
         expect(xml).toContain('scene3d_setfollowheight');
+    });
+
+    test('adds stereo audio blocks to sound category', () => {
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+
+        expect(xml).toContain('sound_setstereopan');
+        expect(xml).toContain('sound_changestereopanby');
+        expect(xml).toContain('sound_stereopan');
     });
 
     test('adds base conversion blocks to operators', () => {

@@ -100,14 +100,6 @@ const motion = function (isInitialSetup, isStage, targetId, colors) {
                 </shadow>
             </value>
         </block>
-        ${blockSeparator}
-        <block type="motion_pointindirection">
-            <value name="DIRECTION">
-                <shadow type="math_angle">
-                    <field name="NUM">90</field>
-                </shadow>
-            </value>
-        </block>
         <block type="motion_changexby">
             <value name="DX">
                 <shadow type="math_number">
@@ -208,16 +200,6 @@ const looks = function (isInitialSetup, isStage, targetId, costumeName, backdrop
             ${blockSeparator}
             <block id="${targetId}_size" type="looks_size"/>
         `}
-        ${blockSeparator}
-        <block type="looks_switchbackdropto">
-            <value name="BACKDROP">
-                <shadow type="looks_backdrops">
-                    <field name="BACKDROP">${backdropName}</field>
-                </shadow>
-            </value>
-        </block>
-        <block type="looks_nextbackdrop"/>
-        <block type="looks_backdropnumbername"/>
         ${categorySeparator}
     </category>
     `;
@@ -418,13 +400,9 @@ const mouse = function (colors) {
         <block type="mouse_lock"/>
         <block type="mouse_unlock"/>
         ${blockSeparator}
-        <block type="sensing_mousedown"/>
         <block type="mouse_buttondown">
             <field name="BUTTON">left</field>
         </block>
-        <block type="sensing_mousex"/>
-        <block type="sensing_mousey"/>
-        <block type="sensing_mousez"/>
         ${blockSeparator}
         <block type="mouse_deltax"/>
         <block type="mouse_deltay"/>
@@ -608,6 +586,21 @@ const sound = function (isInitialSetup, isStage, targetId, soundName, colors) {
             </value>
         </block>
         <block type="sound_cleareffects"/>
+        <block type="sound_setstereopan">
+            <value name="PAN">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sound_changestereopanby">
+            <value name="PAN">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+        </block>
+        <block id="${targetId}_stereopan" type="sound_stereopan"/>
         ${blockSeparator}
         <block type="sound_changevolumeby">
             <value name="VOLUME">

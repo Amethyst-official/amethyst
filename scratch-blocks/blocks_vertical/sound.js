@@ -190,6 +190,46 @@ Blockly.Blocks['sound_cleareffects'] = {
   }
 };
 
+Blockly.Blocks['sound_setstereopan'] = {
+  /**
+   * Block to set left-right stereo pan.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.SOUND_SETSTEREOPAN,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "PAN"
+        }
+      ],
+      "category": Blockly.Categories.sound,
+      "extensions": ["colours_sounds", "shape_statement"]
+    });
+  }
+};
+
+Blockly.Blocks['sound_changestereopanby'] = {
+  /**
+   * Block to change left-right stereo pan.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.SOUND_CHANGESTEREOPANBY,
+      "args0": [
+        {
+          "type": "input_value",
+          "name": "PAN"
+        }
+      ],
+      "category": Blockly.Categories.sound,
+      "extensions": ["colours_sounds", "shape_statement"]
+    });
+  }
+};
+
 Blockly.Blocks['sound_changevolumeby'] = {
   /**
    * Block to change the sprite's volume by a certain value
@@ -240,6 +280,20 @@ Blockly.Blocks['sound_volume'] = {
       "message0": Blockly.Msg.SOUND_VOLUME,
       "category": Blockly.Categories.sound,
       "checkboxInFlyout": true,
+      "extensions": ["colours_sounds", "output_number"]
+    });
+  }
+};
+
+Blockly.Blocks['sound_stereopan'] = {
+  /**
+   * Block to report left-right stereo pan.
+   * @this Blockly.Block
+   */
+  init: function() {
+    this.jsonInit({
+      "message0": Blockly.Msg.SOUND_STEREOPAN,
+      "category": Blockly.Categories.sound,
       "extensions": ["colours_sounds", "output_number"]
     });
   }

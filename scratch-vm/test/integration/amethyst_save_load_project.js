@@ -40,7 +40,55 @@ test('Amethyst projects preserve 3D actor and scene data through zipped save/loa
                 variables: {},
                 lists: {},
                 broadcasts: {},
-                blocks: {},
+                blocks: {
+                    start: {
+                        opcode: 'event_whenflagclicked',
+                        next: 'scene',
+                        parent: null,
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: true,
+                        x: 32,
+                        y: 48
+                    },
+                    scene: {
+                        opcode: 'scene3d_nextbackdrop',
+                        next: 'mouse',
+                        parent: 'start',
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: false
+                    },
+                    mouse: {
+                        opcode: 'mouse_hidecursor',
+                        next: 'network',
+                        parent: 'scene',
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: false
+                    },
+                    network: {
+                        opcode: 'network_confirmsafety',
+                        next: 'media',
+                        parent: 'mouse',
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: false
+                    },
+                    media: {
+                        opcode: 'media_play',
+                        next: null,
+                        parent: 'network',
+                        inputs: {},
+                        fields: {},
+                        shadow: false,
+                        topLevel: false
+                    }
+                },
                 comments: {},
                 currentCostume: 0,
                 costumes: [blankSvgCostume],
@@ -145,6 +193,16 @@ test('Amethyst projects preserve 3D actor and scene data through zipped save/loa
     t.same(actor.modelPivot, {x: 7, y: 8, z: 9});
     t.same(actor.modelPartTransforms.Head.position, {x: 1, y: 2, z: 3});
     t.equal(actor.modelColor, '#8169ff');
+    t.same(Object.values(actor.blocks._blocks)
+        .map(block => block.opcode)
+        .sort(), [
+        'event_whenflagclicked',
+        'media_play',
+        'mouse_hidecursor',
+        'network_confirmsafety',
+        'scene3d_nextbackdrop'
+    ]);
+    t.same(JSON.parse(loadedVM.toJSON()).extensions, []);
     t.same(loadedVM.runtime.scratch3dScene.background, {
         mode: 'sky',
         skyColor: '#112233',

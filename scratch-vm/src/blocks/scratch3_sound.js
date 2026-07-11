@@ -144,6 +144,9 @@ class Scratch3SoundBlocks {
             sound_stopallsounds: this.stopAllSounds,
             sound_seteffectto: this.setEffect,
             sound_changeeffectby: this.changeEffect,
+            sound_setstereopan: this.setStereoPan,
+            sound_changestereopanby: this.changeStereoPan,
+            sound_stereopan: this.getStereoPan,
             sound_cleareffects: this.clearEffects,
             sound_sounds_menu: this.soundsMenu,
             sound_beats_menu: this.beatsMenu,
@@ -271,6 +274,24 @@ class Scratch3SoundBlocks {
 
     changeEffect (args, util) {
         return this._updateEffect(args, util, true);
+    }
+
+    setStereoPan (args, util) {
+        return this._updateEffect({
+            EFFECT: 'pan',
+            VALUE: args.PAN
+        }, util, false);
+    }
+
+    changeStereoPan (args, util) {
+        return this._updateEffect({
+            EFFECT: 'pan',
+            VALUE: args.PAN
+        }, util, true);
+    }
+
+    getStereoPan (args, util) {
+        return this._getSoundState(util.target).effects.pan;
     }
 
     _updateEffect (args, util, change) {

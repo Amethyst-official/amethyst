@@ -1,5 +1,6 @@
 const test = require('tap').test;
 const Sound = require('../../src/blocks/scratch3_sound');
+const compatBlocks = require('../../src/compiler/compat-blocks');
 let playedSound;
 
 const blocks = new Sound();
@@ -69,5 +70,56 @@ test('playSound prioritizes sound name if given a string', t => {
     blocks.playSound(args, util);
     // Use the sound named '6', which is the fourth
     t.strictEqual(playedSound, 'fourth soundId');
+    t.end();
+});
+
+test('stereo pan blocks update and report left-right audio position', t => {
+    const runtime = {
+        runtimeOptions: {miscLimits: true},
+        on: () => {},
+        requestRedraw: () => {}
+    };
+    const soundBlocks = new Sound(runtime);
+    let syncedTarget = null;
+    const target = {
+        _customState: {},
+        getCustomState (key) {
+            return this._customState[key];
+        },
+        setCustomState (key, value) {
+            this._customState[key] = value;
+        },
+        sprite: {
+            soundBank: {
+                setEffects: targetWithEffects => {
+                    syncedTarget = targetWithEffects;
+                }
+            }
+        }
+    };
+    const soundUtil = {target};
+
+    soundBlocks.setStereoPan({PAN: -50}, soundUtil);
+    t.equal(soundBlocks.getStereoPan({}, soundUtil), -50);
+    t.equal(target.soundEffects.pan, -50);
+    t.equal(syncedTarget, target);
+
+    soundBlocks.changeStereoPan({PAN: 175}, soundUtil);
+    t.equal(soundBlocks.getStereoPan({}, soundUtil), 100);
+
+    soundBlocks.clearEffects({}, soundUtil);
+    t.equal(soundBlocks.getStereoPan({}, soundUtil), 0);
+    t.end();
+});
+
+test('stereo pan blocks are accepted by compiler compatibility layer', t => {
+    [
+        'sound_changestereopanby',
+        'sound_setstereopan'
+    ].forEach(opcode => {
+        t.ok(compatBlocks.stacked.includes(opcode), `${opcode} is stack-compatible`);
+    });
+
+    t.ok(compatBlocks.inputs.includes('sound_stereopan'), 'sound_stereopan is reporter-compatible');
     t.end();
 });

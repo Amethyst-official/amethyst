@@ -51,9 +51,13 @@ const CORE_EXTENSIONS = [
     'event',
     'looks',
     'math',
+    'media',
     'motion',
+    'mouse',
+    'network',
     'operator',
     'procedures',
+    'scene3d',
     'sensing',
     'sound'
 ];

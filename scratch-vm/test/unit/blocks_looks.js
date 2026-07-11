@@ -3,6 +3,7 @@ const Looks = require('../../src/blocks/scratch3_looks');
 const Runtime = require('../../src/engine/runtime');
 const Sprite = require('../../src/sprites/sprite.js');
 const RenderedTarget = require('../../src/sprites/rendered-target.js');
+const compatBlocks = require('../../src/compiler/compat-blocks');
 const util = {
     target: {
         currentCostume: 0, // Internally, current costume is 0 indexed
@@ -282,5 +283,15 @@ test('looks primitives do not expose removed animation point blocks', t => {
 
     t.notOk(primitives.looks_movemodelpoint);
     t.notOk(looks.moveModelPoint);
+    t.end();
+});
+
+test('Amethyst 3D looks blocks are accepted by compiler compatibility layer', t => {
+    [
+        'looks_clearmodelcolor',
+        'looks_setmodelcolor'
+    ].forEach(opcode => {
+        t.ok(compatBlocks.stacked.includes(opcode), `${opcode} is stack-compatible`);
+    });
     t.end();
 });

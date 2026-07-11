@@ -3,6 +3,7 @@ const Motion = require('../../src/blocks/scratch3_motion');
 const Runtime = require('../../src/engine/runtime');
 const Sprite = require('../../src/sprites/sprite.js');
 const RenderedTarget = require('../../src/sprites/rendered-target.js');
+const compatBlocks = require('../../src/compiler/compat-blocks');
 
 test('getPrimitives', t => {
     const rt = new Runtime();
@@ -217,6 +218,21 @@ test('3D model costumes can be added and selected like Scratch costumes', t => {
     const json = target.toJSON();
     t.equal(json.currentModelCostume, 0);
     t.same(json.modelCostumes.map(model => model.name), ['idle.glb', 'run.glb']);
+    t.end();
+});
+
+test('Amethyst 3D motion blocks are accepted by compiler compatibility layer', t => {
+    [
+        'motion_changezby',
+        'motion_setz',
+        'motion_turnpitchby',
+        'motion_turnrollby',
+        'motion_turnyawby'
+    ].forEach(opcode => {
+        t.ok(compatBlocks.stacked.includes(opcode), `${opcode} is stack-compatible`);
+    });
+
+    t.ok(compatBlocks.inputs.includes('motion_zposition'), 'motion_zposition is reporter-compatible');
     t.end();
 });
 

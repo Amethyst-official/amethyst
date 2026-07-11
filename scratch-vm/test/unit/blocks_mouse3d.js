@@ -1,5 +1,6 @@
 const test = require('tap').test;
 const Mouse3D = require('../../src/blocks/scratch3_mouse3d');
+const compatBlocks = require('../../src/compiler/compat-blocks');
 
 const makeRuntime = () => ({
     ioDevices: {
@@ -93,5 +94,29 @@ test('reports specific mouse buttons', t => {
     t.equal(blocks.buttonDown({BUTTON: 'left'}), false);
     t.equal(blocks.buttonDown({BUTTON: 'right'}), true);
     t.equal(blocks.buttonDown({BUTTON: 'middle'}), false);
+    t.end();
+});
+
+test('mouse blocks are accepted by compiler compatibility layer', t => {
+    [
+        'mouse_hidecursor',
+        'mouse_lock',
+        'mouse_setmode',
+        'mouse_setsensitivity',
+        'mouse_setthirdpersondistance',
+        'mouse_showcursor',
+        'mouse_unlock'
+    ].forEach(opcode => {
+        t.ok(compatBlocks.stacked.includes(opcode), `${opcode} is stack-compatible`);
+    });
+
+    [
+        'mouse_buttondown',
+        'mouse_deltax',
+        'mouse_deltay',
+        'mouse_mode'
+    ].forEach(opcode => {
+        t.ok(compatBlocks.inputs.includes(opcode), `${opcode} is reporter-compatible`);
+    });
     t.end();
 });
