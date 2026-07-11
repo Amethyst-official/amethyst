@@ -9,6 +9,10 @@ Amethyst is a 3D block-coding editor based on TurboWarp, with Scratch-style bloc
 
 Amethyst keeps the simple block-programming feel of Scratch and TurboWarp, but changes the creative target from a 2D sprite stage into a 3D game-making space with model actors, camera controls, environment controls, and a native `.amx` project direction.
 
+## Source Code And Desktop Builds
+
+Amethyst's source code is free, and building from source is free. The paid desktop option is for the pre-built binary distributed by the project, not for access to the source code.
+
 ## What Works Right Now
 
 - A web editor based on the TurboWarp source stack.

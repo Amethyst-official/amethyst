@@ -4,6 +4,10 @@ These docs explain the current Amethyst project direction, local usage, block be
 
 Amethyst is early. Prefer honest docs over polished promises.
 
+## Source Code And Desktop Builds
+
+Amethyst's source code is free, and building from source is free. The paid desktop option is for the pre-built binary distributed by the project, not for access to the source code.
+
 ## Start Here
 
 - [Getting Started](getting-started.md)

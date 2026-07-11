@@ -86,7 +86,7 @@ const HomeMenu = () => (
                 <span className={styles.homeActionText}>
                     <span>
                         <FormattedMessage
-                            defaultMessage="Create Game"
+                            defaultMessage="Open Web Editor"
                             description="Primary homepage action"
                             id="amethyst.home.createGame"
                         />
@@ -102,24 +102,24 @@ const HomeMenu = () => (
             </a>
             <a
                 className={styles.homeAction}
-                href="https://github.com/Amethyst-official/amethyst#readme"
+                href="https://noahli.gumroad.com/l/amethyst"
                 target="_blank"
                 rel="noreferrer"
             >
-                <span className={styles.homeActionIcon}>{'?'}</span>
+                <span className={styles.homeActionIcon}>{'$'}</span>
                 <span className={styles.homeActionText}>
                     <span>
                         <FormattedMessage
-                            defaultMessage="Docs"
-                            description="Homepage docs action"
-                            id="amethyst.home.docs"
+                            defaultMessage="Get Desktop Version"
+                            description="Homepage paid desktop action"
+                            id="amethyst.home.desktop"
                         />
                     </span>
                     <small>
                         <FormattedMessage
-                            defaultMessage="Read the project guide"
-                            description="Homepage docs action subtitle"
-                            id="amethyst.home.docs.subtitle"
+                            defaultMessage="Paid pre-built binary"
+                            description="Homepage paid desktop action subtitle"
+                            id="amethyst.home.desktop.subtitle"
                         />
                     </small>
                 </span>
