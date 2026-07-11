@@ -420,8 +420,8 @@
     "developer_comment": "Appears in file saving dialog when exporting a sound"
   },
   "files.sprite3": {
-    "string": "Scratch 3 Sprite",
-    "developer_comment": "Appears in file saving dialog when exporting a sprite"
+    "string": "Amethyst Actor",
+    "developer_comment": "Appears in file saving dialog when exporting an actor"
   },
   "files.txt": {
     "string": "Text Document",

@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {connect} from 'react-redux';
-import locales from '@turbowarp/scratch-l10n';
 
 import check from './check.svg';
 import {MenuItem, Submenu} from '../menu/menu.jsx';
@@ -15,6 +14,12 @@ import {selectLocale} from '../../reducers/locales.js';
 import styles from './settings-menu.css';
 
 import dropdownCaret from './dropdown-caret.svg';
+
+const supportedLocales = {
+    en: {
+        name: 'English'
+    }
+};
 
 class LanguageMenu extends React.PureComponent {
     constructor (props) {
@@ -91,7 +96,7 @@ class LanguageMenu extends React.PureComponent {
                     place={this.props.isRtl ? 'left' : 'right'}
                 >
                     {
-                        Object.keys(locales)
+                        Object.keys(supportedLocales)
                             .map(locale => (
                                 <MenuItem
                                     key={locale}
@@ -107,7 +112,7 @@ class LanguageMenu extends React.PureComponent {
                                         draggable={false}
                                         {...(this.props.currentLocale === locale && {ref: this.setRef})}
                                     />
-                                    {locales[locale].name}
+                                    {supportedLocales[locale].name}
                                 </MenuItem>
                             ))
                     }
