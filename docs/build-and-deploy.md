@@ -103,15 +103,24 @@ If a deploy fails with missing block files or generated Scratch Blocks outputs:
 
 ## Desktop Packaging
 
-Desktop is not the current focus.
+Desktop packaging is active, but the integrated exporter is not Amethyst-native yet.
 
 The intended direction is to use the existing TurboWarp Desktop-style packaging path in `desktop`, not switch to a new native stack without a reason.
 
-Before desktop work:
+Current warning:
+
+- the desktop shell can open an Amethyst-branded packager window
+- the bundled packager still comes from the upstream TurboWarp Packager standalone build
+- native executable packaging is disabled/marked experimental until the Amethyst 3D runtime exporter replaces the old Scratch/TurboWarp runtime path
+- single-file HTML export is the only intended test target for now, and it may still miss Amethyst-specific 3D behavior
+
+Before treating desktop export as release-ready:
 
 - stabilize the web editor
 - stabilize `.amx`
 - stabilize model import/render
+- fork or vendor the packager source instead of patching the downloaded standalone HTML bundle
+- package the Amethyst Three.js stage, 3D actors, model assets, camera blocks, and environment state
 - decide how local file access should work
 - review security implications for Network and AmethystAI features
 
