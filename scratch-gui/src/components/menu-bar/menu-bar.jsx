@@ -684,9 +684,9 @@ class MenuBar extends React.Component {
                                                 onClick={this.handleClickPackager}
                                             >
                                                 <FormattedMessage
-                                                    defaultMessage="Package project"
+                                                    defaultMessage="Export single-file HTML"
                                                     // eslint-disable-next-line max-len
-                                                    description="Menu bar item to open the current project in the packager"
+                                                    description="Menu bar item to export the current project as a standalone single-file HTML app"
                                                     id="tw.menuBar.package"
                                                 />
                                             </MenuItem>

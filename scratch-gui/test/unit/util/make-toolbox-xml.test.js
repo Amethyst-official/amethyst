@@ -1,8 +1,31 @@
 import makeToolboxXML from '../../../src/lib/make-toolbox-xml';
 
 describe('makeToolboxXML', () => {
-    test('keeps the 3D toolbox category valid so later block categories still load', () => {
+    const presetBlocksEnabled = {
+        camera: true,
+        environment: true,
+        mouse: true,
+        media: true,
+        network: true
+    };
+
+    test('keeps optional Amethyst modules hidden until the addon enables them', () => {
         const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene', 'pop');
+
+        expect(xml).toContain('id="motion"');
+        expect(xml).toContain('id="looks"');
+        expect(xml).toContain('id="sound"');
+        expect(xml).toContain('id="myBlocks"');
+        expect(xml).not.toContain('id="scene3d"');
+        expect(xml).not.toContain('id="environment"');
+        expect(xml).not.toContain('id="mouse"');
+        expect(xml).not.toContain('id="media"');
+        expect(xml).not.toContain('id="network"');
+    });
+
+    test('keeps the 3D toolbox category valid so later block categories still load when presets are enabled', () => {
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene', 'pop',
+            undefined, presetBlocksEnabled);
 
         expect(xml).toContain('Camera');
         expect(xml).not.toContain('Camera & Lights');
@@ -28,7 +51,8 @@ describe('makeToolboxXML', () => {
     });
 
     test('puts advanced media and network categories below variables and above my blocks', () => {
-        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, presetBlocksEnabled);
 
         const variablesIndex = xml.indexOf('id="variables"');
         const mediaIndex = xml.indexOf('id="media"');
@@ -42,7 +66,8 @@ describe('makeToolboxXML', () => {
     });
 
     test('uses 3D-ready user-facing blocks instead of broken 2D blocks', () => {
-        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, presetBlocksEnabled);
 
         expect(xml).toContain('motion_turnyawby');
         expect(xml).toContain('motion_turnpitchby');
@@ -61,7 +86,8 @@ describe('makeToolboxXML', () => {
     });
 
     test('adds environment blocks for world and stage controls', () => {
-        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, presetBlocksEnabled);
 
         expect(xml).toContain('name="Environment" id="environment"');
         expect(xml).toContain('scene3d_setskycolor');
@@ -77,7 +103,8 @@ describe('makeToolboxXML', () => {
     });
 
     test('adds mouse control blocks for 3D projects', () => {
-        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, presetBlocksEnabled);
 
         expect(xml).toContain('name="Mouse"');
         expect(xml).toContain('mouse_showcursor');
@@ -94,7 +121,8 @@ describe('makeToolboxXML', () => {
     });
 
     test('adds camera follow blocks for 3D projects', () => {
-        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop');
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, presetBlocksEnabled);
 
         expect(xml).toContain('motion_movesidewayssteps');
         expect(xml).toContain('scene3d_turncameraupdownby');

@@ -1028,6 +1028,14 @@ const extraTurboWarpBlocks = `
 const xmlOpen = '<xml style="display: none">';
 const xmlClose = '</xml>';
 
+const defaultAmethystModules = {
+    camera: false,
+    environment: false,
+    mouse: false,
+    media: false,
+    network: false
+};
+
 /**
  * @param {!boolean} isInitialSetup - Whether the toolbox is for initial setup. If the mode is "initial setup",
  * blocks with localized default parameters (e.g. ask and wait) should not be loaded. (LLK/scratch-gui#5445)
@@ -1042,12 +1050,17 @@ const xmlClose = '</xml>';
  * @param {?string} backdropName - The name of the default selected backdrop dropdown.
  * @param {?string} soundName -  The name of the default selected sound dropdown.
  * @param {?object} colors - The colors for the theme.
+ * @param {?object} amethystModules - Optional Amethyst category visibility flags.
  * @returns {string} - a ScratchBlocks-style XML document for the contents of the toolbox.
  */
 const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categoriesXML = [],
-    costumeName = '', backdropName = '', soundName = '', colors = defaultBlockColors) {
+    costumeName = '', backdropName = '', soundName = '', colors = defaultBlockColors, amethystModules = {}) {
     isStage = isInitialSetup || isStage;
     const gap = [categorySeparator];
+    amethystModules = {
+        ...defaultAmethystModules,
+        ...amethystModules
+    };
 
     costumeName = xmlEscape(costumeName);
     backdropName = xmlEscape(backdropName);
@@ -1064,9 +1077,13 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
         // return `undefined`
     };
     const motionXML = moveCategory('motion') || motion(isInitialSetup, isStage, targetId, colors.motion);
-    const scene3dXML = moveCategory('scene3d') || scene3d(colors.motion);
-    const environmentXML = moveCategory('environment') || environment(backdropName);
-    const mouseXML = moveCategory('mouse') || mouse(colors.sensing);
+    const scene3dXML = amethystModules.camera ?
+        (moveCategory('scene3d') || scene3d(colors.motion)) :
+        moveCategory('scene3d');
+    const environmentXML = amethystModules.environment ?
+        (moveCategory('environment') || environment(backdropName)) :
+        moveCategory('environment');
+    const mouseXML = amethystModules.mouse ? (moveCategory('mouse') || mouse(colors.sensing)) : moveCategory('mouse');
     const looksXML = moveCategory('looks') ||
         looks(isInitialSetup, isStage, targetId, costumeName, backdropName, colors.looks);
     const soundXML = moveCategory('sound') || sound(isInitialSetup, isStage, targetId, soundName, colors.sounds);
@@ -1075,8 +1092,12 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
     const sensingXML = moveCategory('sensing') || sensing(isInitialSetup, isStage, targetId, colors.sensing);
     const operatorsXML = moveCategory('operators') || operators(isInitialSetup, isStage, targetId, colors.operators);
     const variablesXML = moveCategory('data') || variables(isInitialSetup, isStage, targetId, colors.data);
-    const mediaXML = moveCategory('media') || mediaDisplay(colors.looks);
-    const networkXML = moveCategory('network') || network(colors.sensing);
+    const mediaXML = amethystModules.media ?
+        (moveCategory('media') || mediaDisplay(colors.looks)) :
+        moveCategory('media');
+    const networkXML = amethystModules.network ?
+        (moveCategory('network') || network(colors.sensing)) :
+        moveCategory('network');
     const myBlocksXML = moveCategory('procedures') || myBlocks(isInitialSetup, isStage, targetId, colors.more);
 
     // Always display TurboWarp blocks as the first extension, if it exists,
@@ -1089,20 +1110,26 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
     const everything = [
         xmlOpen,
         motionXML, gap,
-        scene3dXML, gap,
-        environmentXML, gap,
-        mouseXML, gap,
         looksXML, gap,
         soundXML, gap,
         eventsXML, gap,
         controlXML, gap,
         sensingXML, gap,
         operatorsXML, gap,
-        variablesXML, gap,
-        mediaXML, gap,
-        networkXML, gap,
+        variablesXML,
+        scene3dXML && gap,
+        scene3dXML,
+        environmentXML && gap,
+        environmentXML,
+        mouseXML && gap,
+        mouseXML,
+        mediaXML && gap,
+        mediaXML,
+        networkXML && gap,
+        networkXML,
+        gap,
         myBlocksXML
-    ];
+    ].filter(Boolean);
 
     if (turbowarpXML) {
         everything.push(gap, turbowarpXML);

@@ -80,6 +80,7 @@ import _tw_disable_vibration from "../addons/tw-disable-vibration/_manifest_entr
 import _tw_disable_cloud_variables from "../addons/tw-disable-cloud-variables/_manifest_entry.js";
 import _tw_disable_compiler from "../addons/tw-disable-compiler/_manifest_entry.js";
 import _editor_stepping from "../addons/editor-stepping/_manifest_entry.js";
+import _amethyst_preset_blocks from "../addons/amethyst-preset-blocks/_manifest_entry.js";
 import _amethyst_ai from "../addons/amethyst-ai/_manifest_entry.js";
 export default {
   "cat-blocks": _cat_blocks,
@@ -163,5 +164,6 @@ export default {
   "tw-disable-cloud-variables": _tw_disable_cloud_variables,
   "tw-disable-compiler": _tw_disable_compiler,
   "editor-stepping": _editor_stepping,
+  "amethyst-preset-blocks": _amethyst_preset_blocks,
   "amethyst-ai": _amethyst_ai,
 };

@@ -44,6 +44,7 @@ import {
     SOUNDS_TAB_INDEX
 } from '../reducers/editor-tab';
 import AddonHooks from '../addons/hooks.js';
+import SettingsStore from '../addons/settings-store-singleton';
 import LoadScratchBlocksHOC from '../lib/tw-load-scratch-blocks-hoc.jsx';
 import {findTopBlock} from '../lib/backpack/code-payload.js';
 import {gentlyRequestPersistentStorage} from '../lib/tw-persistent-storage.js';
@@ -109,6 +110,8 @@ class Blocks extends React.Component {
             'handleNetworkSafetyCancel',
             'handleNetworkSafetyCheckboxChange',
             'handleNetworkSafetyConfirm',
+            'handleAmethystPresetBlocksChanged',
+            'handleAddonStorageChanged',
             'handleStatusButtonUpdate',
             'installNetworkCategoryGate',
             'handleOpenSoundRecorder',
@@ -186,6 +189,8 @@ class Blocks extends React.Component {
             return false;
         };
         AddonHooks.blocklyWorkspace = this.workspace;
+        SettingsStore.addEventListener('setting-changed', this.handleAmethystPresetBlocksChanged);
+        window.addEventListener('storage', this.handleAddonStorageChanged);
 
         // Register buttons under new callback keys for creating variables,
         // lists, and procedures from extensions.
@@ -307,6 +312,8 @@ class Blocks extends React.Component {
         }
     }
     componentWillUnmount () {
+        SettingsStore.removeEventListener('setting-changed', this.handleAmethystPresetBlocksChanged);
+        window.removeEventListener('storage', this.handleAddonStorageChanged);
         this.detachVM();
         this.unmounted = true;
         this.workspace.dispose();
@@ -483,6 +490,27 @@ class Blocks extends React.Component {
     onVisualReport (data) {
         this.workspace.reportValue(data.id, data.value);
     }
+    handleAmethystPresetBlocksChanged (event) {
+        if (event.detail && event.detail.addonId === 'amethyst-preset-blocks') {
+            this.requestToolboxUpdate();
+        }
+    }
+    handleAddonStorageChanged (event) {
+        if (event.key === 'tw:addons') {
+            SettingsStore.readLocalStorage();
+            this.requestToolboxUpdate();
+        }
+    }
+    getAmethystModuleOptions () {
+        const enabled = SettingsStore.getAddonEnabled('amethyst-preset-blocks');
+        return {
+            camera: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'camera'),
+            environment: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'environment'),
+            mouse: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'mouse'),
+            media: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'media'),
+            network: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'network')
+        };
+    }
     getToolboxXML () {
         // Use try/catch because this requires digging pretty deep into the VM
         // Code inside intentionally ignores several error situations (no stage, etc.)
@@ -503,7 +531,8 @@ class Blocks extends React.Component {
                 targetCostumes[targetCostumes.length - 1].name,
                 stageCostumes[stageCostumes.length - 1].name,
                 targetSounds.length > 0 ? targetSounds[targetSounds.length - 1].name : '',
-                this.props.theme.getBlockColors()
+                this.props.theme.getBlockColors(),
+                this.getAmethystModuleOptions()
             );
         } catch {
             return null;
