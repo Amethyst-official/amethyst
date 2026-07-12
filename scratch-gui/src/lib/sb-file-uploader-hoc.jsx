@@ -83,13 +83,9 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                                     description: 'Amethyst Project',
                                     accept: {
                                         // Chrome on Android tracks the MIME type of files that get downloaded and
-                                        // then actually enforces that the type must match in showOpenFilePicker()
-                                        // and does not allow the user to override the filter. As Scratch projects have
-                                        // no well-defined and well-adopted MIME types, we can't assume anything about
-                                        // what MIME type they are saved with, so we have to use the most broad MIME
-                                        // type here. Otherwise some users just won't be able to load files for no
-                                        // fault of their own.
-                                        '*/*': ['.amx', '.sb2', '.sb3']
+                                        // Amethyst projects do not have a registered MIME type yet, so keep the MIME
+                                        // broad while restricting the visible extension to the Amethyst format.
+                                        '*/*': ['.amx']
                                     }
                                 }
                             ]
@@ -112,7 +108,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
             } else {
                 // create <input> element and add it to DOM
                 this.inputElement = document.createElement('input');
-                this.inputElement.accept = '.amx,.sb2,.sb3';
+                this.inputElement.accept = '.amx';
                 this.inputElement.style = 'display: none;';
                 this.inputElement.type = 'file';
                 this.inputElement.onchange = this.handleChange; // connects to step 3
@@ -149,7 +145,7 @@ const SBFileUploaderHOC = function (WrappedComponent) {
                     // Don't update file handle until after confirming replace.
                     const handle = thisFileInput.handle;
                     if (handle) {
-                        if (/\.(?:amx|sb3)$/i.test(this.fileToUpload.name)) {
+                        if (/\.amx$/i.test(this.fileToUpload.name)) {
                             this.props.onSetFileHandle(handle);
                         } else {
                             this.props.onSetFileHandle(null);
@@ -184,8 +180,8 @@ const SBFileUploaderHOC = function (WrappedComponent) {
         // used in step 6 below
         getProjectTitleFromFilename (fileInputFilename) {
             if (!fileInputFilename) return '';
-            // only parse title with valid Amethyst/project extensions
-            const matches = fileInputFilename.match(/^(.*)\.(?:amx|sb[23]?)$/i);
+            // only parse title with valid Amethyst project extensions
+            const matches = fileInputFilename.match(/^(.*)\.amx$/i);
             if (!matches) return '';
             return matches[1].substring(0, 100); // truncate project title to max 100 chars
         }

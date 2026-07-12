@@ -29,7 +29,7 @@ let mountedOnce = false;
  * @returns {string}
  */
 const getDefaultProjectTitle = (filename) => {
-  const match = filename.match(/([^/\\]+)\.sb[2|3]?$/);
+  const match = filename.match(/([^/\\]+)\.(amx|sb[2|3]?)$/);
   if (!match) return filename;
   return match[1];
 };
@@ -59,7 +59,7 @@ const handleClickAbout = () => {
 };
 
 const handleClickSourceCode = () => {
-  window.open('https://github.com/TurboWarp');
+  window.open('https://github.com/Amethyst-official/amethyst');
 };
 
 const securityManager = {
@@ -138,7 +138,7 @@ const DesktopHOC = function (WrappedComponent) {
           });
         }
 
-        if (type === 'file' && name.endsWith('.sb3')) {
+        if (type === 'file' && /\.(amx|sb3)$/i.test(name)) {
           this.props.onSetFileHandle(new WrappedFileHandle(id, name));
         }
       })().catch(error => {

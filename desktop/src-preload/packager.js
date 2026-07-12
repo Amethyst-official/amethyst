@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld('GlobalPackagerImporter', () => new Promise((res
       reject(new Error('Failed to import'));
     } else {
       resolve({
-        name: `${data.name}.sb3`,
+        name: `${data.name}.amx`,
         data: data.data
       });
     }
