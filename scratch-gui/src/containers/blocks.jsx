@@ -503,12 +503,15 @@ class Blocks extends React.Component {
     }
     getAmethystModuleOptions () {
         const enabled = SettingsStore.getAddonEnabled('amethyst-preset-blocks');
+        if (!enabled) {
+            return {};
+        }
         return {
-            camera: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'camera'),
-            environment: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'environment'),
-            mouse: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'mouse'),
-            media: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'media'),
-            network: enabled && SettingsStore.getAddonSetting('amethyst-preset-blocks', 'network')
+            camera: SettingsStore.getAddonSetting('amethyst-preset-blocks', 'camera'),
+            environment: SettingsStore.getAddonSetting('amethyst-preset-blocks', 'environment'),
+            mouse: SettingsStore.getAddonSetting('amethyst-preset-blocks', 'mouse'),
+            media: SettingsStore.getAddonSetting('amethyst-preset-blocks', 'media'),
+            network: SettingsStore.getAddonSetting('amethyst-preset-blocks', 'network')
         };
     }
     getToolboxXML () {

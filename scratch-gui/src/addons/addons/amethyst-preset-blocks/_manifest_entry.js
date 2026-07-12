@@ -3,11 +3,11 @@ const manifest = {
   "editorOnly": true,
   "noTranslations": true,
   "name": "Amethyst preset blocks",
-  "description": "Adds optional Amethyst block categories for camera, environment, mouse, media display, and network tools.",
+  "description": "Controls visibility of Amethyst block categories for camera, environment, mouse, media display, and network tools.",
   "info": [
     {
       "type": "notice",
-      "text": "Core 3D motion stays visible by default. These categories are optional so the normal block list stays compact.",
+      "text": "Core Amethyst 3D categories are visible by default. Enable this addon only if you want to hide some of them.",
       "id": "compact"
     },
     {
