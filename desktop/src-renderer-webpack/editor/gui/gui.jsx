@@ -1,6 +1,7 @@
 import React from 'react';
 import {compose} from 'redux';
 import GUI, {AppStateHOC} from 'scratch-gui';
+import TWPackagerIntegrationHOC from 'scratch-gui/src/lib/tw-packager-integration-hoc.jsx';
 
 import ErrorContainerHOC from '../error/error-container-hoc.jsx';
 import DesktopHOC from './desktop-hoc.jsx';
@@ -13,6 +14,7 @@ const WrappedGUI = compose(
   ErrorContainerHOC,
   AppStateHOC,
   DesktopHOC,
+  TWPackagerIntegrationHOC,
   CloudProviderHOC
 )(GUI);
 

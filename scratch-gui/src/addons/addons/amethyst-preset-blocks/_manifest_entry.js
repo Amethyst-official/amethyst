@@ -49,7 +49,7 @@ const manifest = {
       "dynamic": true,
       "name": "Network blocks",
       "type": "boolean",
-      "default": false,
+      "default": true,
       "id": "network"
     }
   ],
