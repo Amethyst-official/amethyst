@@ -49,6 +49,32 @@ import LoadScratchBlocksHOC from '../lib/tw-load-scratch-blocks-hoc.jsx';
 import {findTopBlock} from '../lib/backpack/code-payload.js';
 import {gentlyRequestPersistentStorage} from '../lib/tw-persistent-storage.js';
 
+const CATEGORY_ORDER_STORAGE_KEY = 'amethyst:category-order';
+
+const readCategoryOrder = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return [];
+    }
+    try {
+        const raw = window.localStorage.getItem(CATEGORY_ORDER_STORAGE_KEY);
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.filter(categoryId => typeof categoryId === 'string') : [];
+    } catch {
+        return [];
+    }
+};
+
+const writeCategoryOrder = categoryOrder => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return;
+    }
+    try {
+        window.localStorage.setItem(CATEGORY_ORDER_STORAGE_KEY, JSON.stringify(categoryOrder));
+    } catch {
+        // Ignore storage failures; the reordered toolbox still works until reload.
+    }
+};
+
 // TW: Strings we add to scratch-blocks are localized here
 const messages = defineMessages({
     PROCEDURES_RETURN: {
@@ -112,6 +138,11 @@ class Blocks extends React.Component {
             'handleNetworkSafetyConfirm',
             'handleAmethystPresetBlocksChanged',
             'handleAddonStorageChanged',
+            'installCategoryOrderDragHandlers',
+            'handleCategoryDragStart',
+            'handleCategoryDragOver',
+            'handleCategoryDrop',
+            'handleCategoryDragEnd',
             'handleStatusButtonUpdate',
             'installNetworkCategoryGate',
             'handleOpenSoundRecorder',
@@ -141,9 +172,11 @@ class Blocks extends React.Component {
         this.state = {
             prompt: null,
             networkSafetyPrompt: false,
-            networkSafetyChecked: false
+            networkSafetyChecked: false,
+            categoryOrder: readCategoryOrder()
         };
         this.networkCategoryConfirmed = false;
+        this.draggedCategoryId = null;
         this.onTargetsUpdate = debounce(this.onTargetsUpdate, 100);
         this.toolboxUpdateQueue = [];
     }
@@ -224,6 +257,7 @@ class Blocks extends React.Component {
         // This is used in componentDidUpdate instead of prevProps, because
         // the xml can change while e.g. on the costumes tab.
         this._renderedToolboxXML = this.props.toolboxXML;
+        this.installCategoryOrderDragHandlers();
 
         // we actually never want the workspace to enable "refresh toolbox" - this basically re-renders the
         // entire toolbox every time we reset the workspace.  We call updateToolbox as a part of
@@ -253,6 +287,15 @@ class Blocks extends React.Component {
             this.handleExtensionAdded(category);
         }
 
+        if (this.state.categoryOrder.length > 0) {
+            const toolboxXML = this.getToolboxXML();
+            if (toolboxXML) {
+                this.props.updateToolboxState(toolboxXML);
+                this.pendingToolboxXML = toolboxXML;
+                this.requestToolboxUpdate();
+            }
+        }
+
         gentlyRequestPersistentStorage();
     }
     shouldComponentUpdate (nextProps, nextState) {
@@ -260,6 +303,7 @@ class Blocks extends React.Component {
             this.state.prompt !== nextState.prompt ||
             this.state.networkSafetyPrompt !== nextState.networkSafetyPrompt ||
             this.state.networkSafetyChecked !== nextState.networkSafetyChecked ||
+            this.state.categoryOrder !== nextState.categoryOrder ||
             this.props.isVisible !== nextProps.isVisible ||
             this._renderedToolboxXML !== nextProps.toolboxXML ||
             this.props.extensionLibraryVisible !== nextProps.extensionLibraryVisible ||
@@ -350,8 +394,11 @@ class Blocks extends React.Component {
 
         const categoryId = this.workspace.toolbox_.getSelectedCategoryId();
         const offset = this.workspace.toolbox_.getCategoryScrollOffset();
-        this.workspace.updateToolbox(this.props.toolboxXML);
-        this._renderedToolboxXML = this.props.toolboxXML;
+        const toolboxXML = this.pendingToolboxXML || this.props.toolboxXML;
+        this.pendingToolboxXML = null;
+        this.workspace.updateToolbox(toolboxXML);
+        this._renderedToolboxXML = toolboxXML;
+        this.installCategoryOrderDragHandlers();
 
         // In order to catch any changes that mutate the toolbox during "normal runtime"
         // (variable changes/etc), re-enable toolbox refresh.
@@ -369,6 +416,106 @@ class Blocks extends React.Component {
         const queue = this.toolboxUpdateQueue;
         this.toolboxUpdateQueue = [];
         queue.forEach(fn => fn());
+    }
+
+    getCurrentCategoryOrder () {
+        const categories = this.workspace &&
+            this.workspace.toolbox_ &&
+            this.workspace.toolbox_.categoryMenu_ &&
+            this.workspace.toolbox_.categoryMenu_.categories_;
+        if (!categories) {
+            return [];
+        }
+        return categories
+            .map(category => category.id_)
+            .filter(categoryId => typeof categoryId === 'string' && categoryId.length > 0);
+    }
+
+    installCategoryOrderDragHandlers () {
+        const categories = this.workspace &&
+            this.workspace.toolbox_ &&
+            this.workspace.toolbox_.categoryMenu_ &&
+            this.workspace.toolbox_.categoryMenu_.categories_;
+        if (!categories) {
+            return;
+        }
+        categories.forEach(category => {
+            if (!category.item_ || !category.id_) {
+                return;
+            }
+            if (category.item_.dataset.amethystDragInstalled === 'true') {
+                return;
+            }
+            category.item_.dataset.amethystDragInstalled = 'true';
+            category.item_.draggable = true;
+            category.item_.dataset.categoryId = category.id_;
+            category.item_.title = `${category.name_} - drag to reorder`;
+            category.item_.addEventListener('dragstart', this.handleCategoryDragStart);
+            category.item_.addEventListener('dragover', this.handleCategoryDragOver);
+            category.item_.addEventListener('drop', this.handleCategoryDrop);
+            category.item_.addEventListener('dragend', this.handleCategoryDragEnd);
+        });
+    }
+
+    handleCategoryDragStart (event) {
+        event.stopPropagation();
+        const categoryId = event.currentTarget.dataset.categoryId;
+        this.draggedCategoryId = categoryId;
+        event.currentTarget.classList.add('amethyst-category-dragging');
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/x-amethyst-category-id', categoryId);
+        }
+    }
+
+    handleCategoryDragOver (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'move';
+        }
+    }
+
+    handleCategoryDrop (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const sourceId = (event.dataTransfer &&
+            event.dataTransfer.getData('text/x-amethyst-category-id')) || this.draggedCategoryId;
+        const targetId = event.currentTarget.dataset.categoryId;
+        if (!sourceId || !targetId || sourceId === targetId) {
+            return;
+        }
+
+        const currentOrder = this.getCurrentCategoryOrder();
+        const nextOrder = currentOrder.filter(categoryId => categoryId !== sourceId);
+        const targetIndex = nextOrder.indexOf(targetId);
+        if (targetIndex < 0) {
+            return;
+        }
+        const rect = event.currentTarget.getBoundingClientRect();
+        const insertAfterTarget = event.clientY > rect.top + (rect.height / 2);
+        nextOrder.splice(targetIndex + (insertAfterTarget ? 1 : 0), 0, sourceId);
+        writeCategoryOrder(nextOrder);
+
+        this.setState({
+            categoryOrder: nextOrder
+        }, () => {
+            const toolboxXML = this.getToolboxXML();
+            if (toolboxXML) {
+                this.props.updateToolboxState(toolboxXML);
+                this.pendingToolboxXML = toolboxXML;
+                this.requestToolboxUpdate();
+            }
+        });
+    }
+
+    handleCategoryDragEnd () {
+        this.draggedCategoryId = null;
+        const draggedItems = this.blocks &&
+            this.blocks.querySelectorAll('.amethyst-category-dragging');
+        if (draggedItems) {
+            draggedItems.forEach(item => item.classList.remove('amethyst-category-dragging'));
+        }
     }
 
     withToolboxUpdates (fn) {
@@ -535,7 +682,8 @@ class Blocks extends React.Component {
                 stageCostumes[stageCostumes.length - 1].name,
                 targetSounds.length > 0 ? targetSounds[targetSounds.length - 1].name : '',
                 this.props.theme.getBlockColors(),
-                this.getAmethystModuleOptions()
+                this.getAmethystModuleOptions(),
+                this.state.categoryOrder
             );
         } catch {
             return null;

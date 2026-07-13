@@ -13,6 +13,9 @@ const enabledAmethystModules = {
 const xmlBlockTypes = xml => Array.from(xml.matchAll(/<(?:block|shadow)\b[^>]*\btype="([^"]+)"/g))
     .map(match => match[1]);
 
+const xmlCategoryIds = xml => Array.from(xml.matchAll(/<category\b[^>]*\bid="([^"]+)"/g))
+    .map(match => match[1]);
+
 const ignoredToolboxTypes = new Set([
     'math_number',
     'math_positive_number',
@@ -65,5 +68,14 @@ describe('Amethyst block smoke coverage', () => {
         expectBlockInputs('motion_glidesecstoxy', ['SECS', 'X', 'Y', 'Z']);
         expectBlockInputs('scene3d_setcameraposition', ['X', 'Y', 'Z']);
         expectBlockInputs('scene3d_pointcameraat', ['X', 'Y', 'Z']);
+    });
+
+    test('toolbox category order can be rearranged by category id', () => {
+        const xml = makeToolboxXML(false, false, 'target-id', [], 'Model', 'Scene 1', 'pop',
+            undefined, enabledAmethystModules, ['network', 'motion', 'scene3d']);
+        const categoryIds = xmlCategoryIds(xml);
+
+        expect(categoryIds.indexOf('network')).toBeLessThan(categoryIds.indexOf('motion'));
+        expect(categoryIds.indexOf('motion')).toBeLessThan(categoryIds.indexOf('scene3d'));
     });
 });

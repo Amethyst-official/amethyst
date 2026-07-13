@@ -1038,6 +1038,26 @@ const defaultAmethystModules = {
     network: true
 };
 
+const sortCategoriesByOrder = (categories, categoryOrder) => {
+    if (!Array.isArray(categoryOrder) || categoryOrder.length === 0) {
+        return categories;
+    }
+    const order = new Map();
+    categoryOrder.forEach((categoryId, index) => {
+        if (typeof categoryId === 'string' && !order.has(categoryId)) {
+            order.set(categoryId, index);
+        }
+    });
+    return categories.slice().sort((a, b) => {
+        const aOrder = order.has(a.id) ? order.get(a.id) : Number.MAX_SAFE_INTEGER;
+        const bOrder = order.has(b.id) ? order.get(b.id) : Number.MAX_SAFE_INTEGER;
+        if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+        }
+        return a.index - b.index;
+    });
+};
+
 /**
  * @param {!boolean} isInitialSetup - Whether the toolbox is for initial setup. If the mode is "initial setup",
  * blocks with localized default parameters (e.g. ask and wait) should not be loaded. (LLK/scratch-gui#5445)
@@ -1053,10 +1073,12 @@ const defaultAmethystModules = {
  * @param {?string} soundName -  The name of the default selected sound dropdown.
  * @param {?object} colors - The colors for the theme.
  * @param {?object} amethystModules - Optional Amethyst category visibility flags.
+ * @param {?Array.<string>} categoryOrder - Optional persisted category id order.
  * @returns {string} - a ScratchBlocks-style XML document for the contents of the toolbox.
  */
 const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categoriesXML = [],
-    costumeName = '', backdropName = '', soundName = '', colors = defaultBlockColors, amethystModules = {}) {
+    costumeName = '', backdropName = '', soundName = '', colors = defaultBlockColors, amethystModules = {},
+    categoryOrder = []) {
     isStage = isInitialSetup || isStage;
     const gap = [categorySeparator];
     amethystModules = {
@@ -1109,29 +1131,33 @@ const makeToolboxXML = function (isInitialSetup, isStage = true, targetId, categ
         turbowarpXML = turbowarpXML.replace('<block', `${extraTurboWarpBlocks}<block`);
     }
 
-    const everything = [
-        xmlOpen,
-        motionXML, gap,
-        looksXML, gap,
-        soundXML, gap,
-        eventsXML, gap,
-        controlXML, gap,
-        sensingXML, gap,
-        operatorsXML, gap,
-        variablesXML,
-        scene3dXML && gap,
-        scene3dXML,
-        environmentXML && gap,
-        environmentXML,
-        mouseXML && gap,
-        mouseXML,
-        mediaXML && gap,
-        mediaXML,
-        networkXML && gap,
-        networkXML,
-        gap,
-        myBlocksXML
-    ].filter(Boolean);
+    const categoryParts = sortCategoriesByOrder([
+        {id: 'motion', xml: motionXML},
+        {id: 'looks', xml: looksXML},
+        {id: 'sound', xml: soundXML},
+        {id: 'event', xml: eventsXML},
+        {id: 'control', xml: controlXML},
+        {id: 'sensing', xml: sensingXML},
+        {id: 'operators', xml: operatorsXML},
+        {id: 'data', xml: variablesXML},
+        {id: 'scene3d', xml: scene3dXML},
+        {id: 'environment', xml: environmentXML},
+        {id: 'mouse', xml: mouseXML},
+        {id: 'media', xml: mediaXML},
+        {id: 'network', xml: networkXML},
+        {id: 'procedures', xml: myBlocksXML}
+    ].filter(category => category.xml).map((category, index) => ({
+        ...category,
+        index
+    })), categoryOrder);
+
+    const everything = [xmlOpen];
+    categoryParts.forEach(category => {
+        if (everything.length > 1) {
+            everything.push(gap);
+        }
+        everything.push(category.xml);
+    });
 
     if (turbowarpXML) {
         everything.push(gap, turbowarpXML);

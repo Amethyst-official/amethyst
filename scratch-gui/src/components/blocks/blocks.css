@@ -93,6 +93,15 @@
     font-size: 0.65rem;
 }
 
+.blocks :global(.scratchCategoryMenuItem) {
+    cursor: grab;
+}
+
+.blocks :global(.scratchCategoryMenuItem.amethyst-category-dragging) {
+    opacity: 0.55;
+    cursor: grabbing;
+}
+
 .blocks :global(.blocklyMinimalBody) {
     min-width: auto;
     min-height: auto;
