@@ -26,6 +26,8 @@ test('creates default mouse state', t => {
         thirdPersonDistance: 240,
         deltaX: 0,
         deltaY: 0,
+        wheelDirection: 0,
+        wheelUntil: 0,
         revision: 0
     });
     t.type(blocks.getPrimitives(), 'object');
@@ -114,6 +116,8 @@ test('mouse blocks are accepted by compiler compatibility layer', t => {
         'mouse_buttondown',
         'mouse_deltax',
         'mouse_deltay',
+        'mouse_wheelup',
+        'mouse_wheeldown',
         'mouse_mode'
     ].forEach(opcode => {
         t.ok(compatBlocks.inputs.includes(opcode), `${opcode} is reporter-compatible`);

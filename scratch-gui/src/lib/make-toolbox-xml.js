@@ -1031,11 +1031,11 @@ const xmlOpen = '<xml style="display: none">';
 const xmlClose = '</xml>';
 
 const defaultAmethystModules = {
-    camera: true,
-    environment: true,
-    mouse: true,
-    media: true,
-    network: true
+    camera: false,
+    environment: false,
+    mouse: false,
+    media: false,
+    network: false
 };
 
 /**

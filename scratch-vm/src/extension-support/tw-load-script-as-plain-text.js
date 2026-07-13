@@ -9,7 +9,7 @@ module.exports.pitch = function (request) {
     const callback = this.async();
     const compiler = this._compilation.createChildCompiler('extension worker', {});
     const SingleEntryPlugin = require(require.resolve('webpack/lib/SingleEntryPlugin', {
-        paths: [this.rootContext || process.cwd(), process.cwd()]
+        paths: [this.rootContext || this.context]
     }));
     new SingleEntryPlugin(this.context, `!!${request}`, 'extension worker').apply(compiler);
     compiler.runAsChild((err, entries, compilation) => {

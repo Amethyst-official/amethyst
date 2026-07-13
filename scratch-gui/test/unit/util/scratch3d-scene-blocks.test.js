@@ -20,7 +20,7 @@ describe('scratch3d scene blocks', () => {
 
         expect(ScratchBlocks.Msg.SCENE3D_SETCAMERAPOSITION)
             .toBe('SCENE3D_SETCAMERAPOSITION:set camera position x: %1 y: %2 z: %3');
-        expect(ScratchBlocks.defineBlocksWithJsonArray).toHaveBeenCalledTimes(1);
+        expect(ScratchBlocks.defineBlocksWithJsonArray).toHaveBeenCalledTimes(2);
 
         const definitions = ScratchBlocks.defineBlocksWithJsonArray.mock.calls[0][0];
         expect(definitions.map(definition => definition.type)).toEqual(scene3DBlockTypes);
@@ -33,7 +33,8 @@ describe('scratch3d scene blocks', () => {
                     {type: 'input_value', name: 'Z'}
                 ],
                 category: 'motion',
-                extensions: ['colours_motion', 'shape_statement']
+                colour: '#4c7dff',
+                extensions: ['shape_statement']
             }),
             expect.objectContaining({
                 type: 'scene3d_setambientlight',
@@ -49,6 +50,17 @@ describe('scratch3d scene blocks', () => {
                     {type: 'input_value', name: 'Z'}
                 ]
             })
+        ]));
+
+        const coreDefinitions = ScratchBlocks.defineBlocksWithJsonArray.mock.calls[1][0];
+        expect(coreDefinitions.map(definition => definition.type)).toEqual(expect.arrayContaining([
+            'motion_turnyawby',
+            'motion_turnpitchby',
+            'motion_turnrollby',
+            'mouse_wheelup',
+            'mouse_wheeldown',
+            'network_sendrequest',
+            'media_setimageurl'
         ]));
     });
 });

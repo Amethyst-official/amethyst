@@ -75,7 +75,7 @@ const validateBrowserSafeURL = rawURL => {
 class Scratch3NetworkBlocks {
     constructor (runtime) {
         this.runtime = runtime;
-        this._fetch = typeof fetch === 'function' ? fetch.bind(globalThis) : null;
+        this._fetch = typeof fetch === 'function' ? fetch : null;
         this._ensureNetworkState();
     }
 
@@ -129,11 +129,11 @@ class Scratch3NetworkBlocks {
         return this._ensureNetworkState().confirmed;
     }
 
-    async sendRequest (args) {
+    sendRequest (args) {
         return this._send(args, null);
     }
 
-    async sendAPIRequest (args) {
+    sendAPIRequest (args) {
         return this._send(args, Cast.toString(args.BODY));
     }
 
