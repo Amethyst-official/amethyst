@@ -518,8 +518,7 @@ const Stage3D = ({height, vm, width}) => {
         const postMouseWheel = e => {
             if (!vm || !vm.postIOData) return;
             vm.postIOData('mouseWheel', {
-                deltaX: e.deltaX,
-                deltaY: e.deltaY
+                deltaY: e.deltaY || 0
             });
         };
 

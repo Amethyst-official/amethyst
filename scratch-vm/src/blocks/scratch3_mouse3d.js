@@ -10,6 +10,8 @@ const defaultMouseState = () => ({
     thirdPersonDistance: 240,
     deltaX: 0,
     deltaY: 0,
+    wheelDirection: 0,
+    wheelUntil: 0,
     revision: 0
 });
 
@@ -31,6 +33,8 @@ class Scratch3Mouse3DBlocks {
             mouse_buttondown: this.buttonDown,
             mouse_deltax: this.deltaX,
             mouse_deltay: this.deltaY,
+            mouse_wheelup: this.wheelUp,
+            mouse_wheeldown: this.wheelDown,
             mouse_mode: this.mode
         };
     }
@@ -42,6 +46,12 @@ class Scratch3Mouse3DBlocks {
             },
             mouse_deltay: {
                 getId: () => 'mouse_deltay'
+            },
+            mouse_wheelup: {
+                getId: () => 'mouse_wheelup'
+            },
+            mouse_wheeldown: {
+                getId: () => 'mouse_wheeldown'
             },
             mouse_mode: {
                 getId: () => 'mouse_mode'
@@ -117,6 +127,19 @@ class Scratch3Mouse3DBlocks {
 
     deltaY () {
         return this._ensureMouseState().deltaY;
+    }
+
+    _wheelActive (direction) {
+        const mouseState = this._ensureMouseState();
+        return mouseState.wheelDirection === direction && Date.now() <= (mouseState.wheelUntil || 0);
+    }
+
+    wheelUp () {
+        return this._wheelActive(-1);
+    }
+
+    wheelDown () {
+        return this._wheelActive(1);
     }
 
     mode () {

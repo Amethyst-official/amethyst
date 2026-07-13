@@ -406,6 +406,8 @@ const mouse = function (colors) {
         ${blockSeparator}
         <block type="mouse_deltax"/>
         <block type="mouse_deltay"/>
+        <block type="mouse_wheelup"/>
+        <block type="mouse_wheeldown"/>
         <block type="mouse_mode"/>
         ${categorySeparator}
     </category>

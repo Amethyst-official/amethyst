@@ -3,73 +3,55 @@ import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import log from './log';
 import {getIsShowingProject} from '../reducers/project-state';
+import downloadBlob from './download-blob';
+import {
+    buildAmethystExportHTML,
+    getHTMLExportFilename
+} from './amethyst-html-exporter';
 
-const PACKAGER_URL = 'https://packager.turbowarp.org';
-const PACKAGER_ORIGIN = PACKAGER_URL;
+const getRuntimeUrl = () => {
+    if (location.protocol === 'http:' || location.protocol === 'https:') {
+        return new URL(`${process.env.ROOT}embed.html`, location.href).href;
+    }
+    return undefined;
+};
 
 const PackagerIntegrationHOC = function (WrappedComponent) {
     class PackagerIntegrationComponent extends React.Component {
         constructor (props) {
             super(props);
             this.handleClickPackager = this.handleClickPackager.bind(this);
-            this.handleMessage = this.handleMessage.bind(this);
-        }
-        componentDidMount () {
-            window.addEventListener('message', this.handleMessage);
-        }
-        componentWillUnmount () {
-            window.removeEventListener('message', this.handleMessage);
         }
         handleClickPackager () {
-            if (this.props.canOpenPackager) {
-                window.open(`${PACKAGER_URL}/?import_from=${location.origin}`);
-            }
-        }
-        handleMessage (e) {
-            if (e.origin !== PACKAGER_ORIGIN) {
-                return;
-            }
-
             if (!this.props.canOpenPackager) {
                 return;
             }
 
-            const packagerData = e.data.p4;
-            if (packagerData.type !== 'ready-for-import') {
-                return;
-            }
-
-            // The packager needs to know that we will be importing something so it can display a loading screen
-            e.source.postMessage({
-                p4: {
-                    type: 'start-import'
-                }
-            }, e.origin);
-
             this.props.vm.saveProjectSb3('arraybuffer')
-                .then(buffer => {
-                    const name = `${this.props.reduxProjectTitle}.amx`;
-                    e.source.postMessage({
-                        p4: {
-                            type: 'finish-import',
-                            data: buffer,
-                            name
-                        }
-                    }, e.origin, [buffer]);
+                .then(projectData => buildAmethystExportHTML({
+                    projectData,
+                    title: this.props.reduxProjectTitle,
+                    runtimeUrl: this.props.htmlExportRuntimeUrl || getRuntimeUrl()
+                }))
+                .then(html => {
+                    const filename = getHTMLExportFilename(this.props.reduxProjectTitle);
+                    if (this.props.exportHTMLFile) {
+                        return this.props.exportHTMLFile(filename, html);
+                    }
+                    downloadBlob(filename, new Blob([html], {
+                        type: 'text/html'
+                    }));
                 })
-                .catch(err => {
-                    log.error(err);
-                    e.source.postMessage({
-                        p4: {
-                            type: 'cancel-import'
-                        }
-                    }, e.origin);
+                .catch(error => {
+                    log.error(error);
                 });
         }
         render () {
             const {
                 /* eslint-disable no-unused-vars */
                 canOpenPackager,
+                exportHTMLFile,
+                htmlExportRuntimeUrl,
                 /* eslint-enable no-unused-vars */
                 ...props
             } = this.props;
@@ -83,6 +65,8 @@ const PackagerIntegrationHOC = function (WrappedComponent) {
     }
     PackagerIntegrationComponent.propTypes = {
         canOpenPackager: PropTypes.bool,
+        exportHTMLFile: PropTypes.func,
+        htmlExportRuntimeUrl: PropTypes.string,
         reduxProjectTitle: PropTypes.string,
         vm: PropTypes.shape({
             saveProjectSb3: PropTypes.func

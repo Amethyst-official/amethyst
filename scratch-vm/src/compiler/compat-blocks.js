@@ -99,6 +99,8 @@ const inputs = [
     'mouse_buttondown',
     'mouse_deltax',
     'mouse_deltay',
+    'mouse_wheelup',
+    'mouse_wheeldown',
     'mouse_mode',
     'motion_xscroll',
     'motion_yscroll',

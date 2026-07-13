@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('EditorPreload', {
   openNewWindow: () => ipcRenderer.invoke('open-new-window'),
   openAddonSettings: (search) => ipcRenderer.invoke('open-addon-settings', search),
   openPackager: () => ipcRenderer.invoke('open-packager'),
+  exportHTMLFile: (suggestedName, html) => ipcRenderer.invoke('export-html-file', suggestedName, html),
   openDesktopSettings: () => ipcRenderer.invoke('open-desktop-settings'),
   openPrivacy: () => ipcRenderer.invoke('open-privacy'),
   openAbout: () => ipcRenderer.invoke('open-about'),
@@ -36,6 +37,10 @@ ipcRenderer.on('export-project-to-port', (e) => {
       console.error(error);
       port.postMessage({ error: true });
     });
+});
+
+ipcRenderer.on('request-export-html', () => {
+  window.dispatchEvent(new Event('amethyst-export-html'));
 });
 
 window.addEventListener('message', (e) => {

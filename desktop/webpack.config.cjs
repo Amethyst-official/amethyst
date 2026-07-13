@@ -64,9 +64,12 @@ module.exports = [
         ...base,
         output: {
             path: path.resolve(__dirname, 'dist-renderer-webpack/editor/gui'),
-            filename: 'index.js'
+            filename: '[name].js'
         },
-        entry: './src-renderer-webpack/editor/gui/index.jsx',
+        entry: {
+            index: './src-renderer-webpack/editor/gui/index.jsx',
+            embed: '../scratch-gui/src/playground/embed.jsx'
+        },
         plugins: [
             new DefinePlugin({
                 'process.env.ROOT': '""'

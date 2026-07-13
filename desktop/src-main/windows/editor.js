@@ -10,7 +10,7 @@ const DesktopSettingsWindow = require('./desktop-settings');
 const PrivacyWindow = require('./privacy');
 const AboutWindow = require('./about');
 const PackagerWindow = require('./packager');
-const {createAtomicWriteStream} = require('../atomic-write-stream');
+const {createAtomicWriteStream, writeFileAtomic} = require('../atomic-write-stream');
 const {translate, updateLocale, getStrings} = require('../l10n');
 const {APP_NAME} = require('../brand');
 const prompts = require('../prompts');
@@ -518,6 +518,44 @@ class EditorWindow extends ProjectRunningWindow {
 
     this.ipc.handle('open-packager', () => {
       PackagerWindow.forEditor(this);
+    });
+
+    this.ipc.handle('export-html-file', async (event, suggestedName, html) => {
+      const result = await dialog.showSaveDialog(this.window, {
+        defaultPath: path.join(settings.lastDirectory, suggestedName || 'Amethyst Game.html'),
+        filters: [
+          {
+            name: 'Amethyst HTML Game',
+            extensions: ['html'],
+          }
+        ]
+      });
+      if (result.canceled) {
+        return null;
+      }
+
+      const filePath = result.filePath;
+      const unsafePath = getUnsafePaths().find(i => isChildPath(i.path, filePath));
+      if (unsafePath) {
+        dialog.showMessageBox(this.window, {
+          type: 'error',
+          title: APP_NAME,
+          message: translate('unsafe-path.title'),
+          detail: translate(`unsafe-path.details`)
+            .replace('{APP_NAME}', unsafePath.app)
+            .replace('{file}', filePath),
+          noLink: true
+        });
+        return null;
+      }
+
+      settings.lastDirectory = path.dirname(filePath);
+      await settings.save();
+      await writeFileAtomic(filePath, html);
+
+      return {
+        path: filePath
+      };
     });
 
     this.ipc.handle('open-new-window', () => {

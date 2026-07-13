@@ -7,7 +7,6 @@ const AboutWindow = require('./windows/about');
 const DesktopSettingsWindow = require('./windows/desktop-settings');
 const AddonsWindow = require('./windows/addons');
 const EditorWindow = require('./windows/editor');
-const PackagerWindow = require('./windows/packager');
 
 const rebuildMenuBar = () => {
   if (process.platform === 'darwin') {
@@ -78,7 +77,7 @@ const rebuildMenuBar = () => {
             click: (menuItem, browserWindow) => {
               const window = AbstractWindow.getWindowByBrowserWindow(browserWindow);
               if (window instanceof EditorWindow) {
-                PackagerWindow.forEditor(window);
+                browserWindow.webContents.send('request-export-html');
               }
             }
           },

@@ -322,8 +322,7 @@ class Stage extends React.Component {
     }
     onWheel (e) {
         const data = {
-            deltaX: e.deltaX,
-            deltaY: e.deltaY
+            deltaY: e.deltaY || 0
         };
         this.props.vm.postIOData('mouseWheel', data);
     }

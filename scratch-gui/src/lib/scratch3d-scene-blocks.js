@@ -140,6 +140,14 @@ const scene3DMessages = [
         defaultMessage: 'mouse movement y'
     },
     {
+        key: 'MOUSE_WHEELUP',
+        defaultMessage: 'scroll wheel up?'
+    },
+    {
+        key: 'MOUSE_WHEELDOWN',
+        defaultMessage: 'scroll wheel down?'
+    },
+    {
         key: 'MOUSE_MODE',
         defaultMessage: 'mouse mode'
     },
@@ -521,6 +529,22 @@ const scratch3DCoreBlockSpecs = [
         category: 'sensing',
         checkboxInFlyout: true,
         extensions: ['colours_sensing', 'output_number']
+    },
+    {
+        type: 'mouse_wheelup',
+        messageKey: 'MOUSE_WHEELUP',
+        args0: [],
+        category: 'sensing',
+        checkboxInFlyout: true,
+        extensions: ['colours_sensing', 'output_boolean']
+    },
+    {
+        type: 'mouse_wheeldown',
+        messageKey: 'MOUSE_WHEELDOWN',
+        args0: [],
+        category: 'sensing',
+        checkboxInFlyout: true,
+        extensions: ['colours_sensing', 'output_boolean']
     },
     {
         type: 'mouse_mode',

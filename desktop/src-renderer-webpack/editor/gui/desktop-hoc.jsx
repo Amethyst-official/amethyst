@@ -19,6 +19,10 @@ import {
   setUsername,
   setProjectError
 } from 'scratch-gui/src/reducers/tw';
+import {
+  buildAmethystExportHTML,
+  getHTMLExportFilename
+} from 'scratch-gui/src/lib/amethyst-html-exporter';
 import {WrappedFileHandle} from './filesystem-api.js';
 import {setStrings} from '../prompt/prompt.js';
 
@@ -42,10 +46,6 @@ const handleClickNewWindow = () => {
   EditorPreload.openNewWindow();
 };
 
-const handleClickPackager = () => {
-  EditorPreload.openPackager();
-};
-
 const handleClickDesktopSettings = () => {
   EditorPreload.openDesktopSettings();
 };
@@ -61,6 +61,8 @@ const handleClickAbout = () => {
 const handleClickSourceCode = () => {
   window.open('https://github.com/Amethyst-official/amethyst');
 };
+
+const getLocalHTMLPlayerUrl = () => new URL('embed.html', location.href).href;
 
 const securityManager = {
   // Everything not specified here falls back to the scratch-gui security manager
@@ -84,6 +86,8 @@ const DesktopHOC = function (WrappedComponent) {
         title: ''
       };
       this.handleUpdateProjectTitle = this.handleUpdateProjectTitle.bind(this);
+      this.handleExportHTML = this.handleExportHTML.bind(this);
+      this.handleNativeExportHTML = this.handleNativeExportHTML.bind(this);
 
       // Changing locale always re-mounts this component
       const stateFromMain = EditorPreload.setLocale(this.props.locale);
@@ -101,6 +105,8 @@ const DesktopHOC = function (WrappedComponent) {
       }
     }
     componentDidMount () {
+      window.addEventListener('amethyst-export-html', this.handleNativeExportHTML);
+
       EditorPreload.setExportForPackager(() => this.props.vm.saveProjectSb3('arraybuffer')
         .then((buffer) => ({
           name: this.state.title,
@@ -151,6 +157,9 @@ const DesktopHOC = function (WrappedComponent) {
         this.props.onRequestNewProject();
       });
     }
+    componentWillUnmount () {
+      window.removeEventListener('amethyst-export-html', this.handleNativeExportHTML);
+    }
     componentDidUpdate (prevProps, prevState) {
       if (this.props.projectChanged !== prevProps.projectChanged) {
         EditorPreload.setChanged(this.props.projectChanged);
@@ -181,6 +190,22 @@ const DesktopHOC = function (WrappedComponent) {
         title: newTitle
       });
     }
+    handleExportHTML (filename, html) {
+      return EditorPreload.exportHTMLFile(filename, html);
+    }
+    handleNativeExportHTML () {
+      return this.props.vm.saveProjectSb3('arraybuffer')
+        .then(projectData => buildAmethystExportHTML({
+          projectData,
+          title: this.state.title,
+          runtimeUrl: getLocalHTMLPlayerUrl()
+        }))
+        .then(html => EditorPreload.exportHTMLFile(getHTMLExportFilename(this.state.title), html))
+        .catch(error => {
+          console.error(error);
+          PromptsPreload.alert(`Could not export HTML game: ${error.message || error}`);
+        });
+    }
     render() {
       const {
         locale,
@@ -206,7 +231,8 @@ const DesktopHOC = function (WrappedComponent) {
           onUpdateProjectTitle={this.handleUpdateProjectTitle}
           onClickAddonSettings={handleClickAddonSettings}
           onClickNewWindow={handleClickNewWindow}
-          onClickPackager={handleClickPackager}
+          exportHTMLFile={this.handleExportHTML}
+          htmlExportRuntimeUrl={getLocalHTMLPlayerUrl()}
           onClickAbout={[
             {
               title: this.messages['in-app-about.desktop-settings'],
@@ -252,7 +278,8 @@ const DesktopHOC = function (WrappedComponent) {
     onSetReduxUsername: PropTypes.func.isRequired,
     onShowErrorModal: PropTypes.func.isRequired,
     vm: PropTypes.shape({
-      loadProject: PropTypes.func.isRequired
+      loadProject: PropTypes.func.isRequired,
+      saveProjectSb3: PropTypes.func.isRequired
     }).isRequired
   };
 

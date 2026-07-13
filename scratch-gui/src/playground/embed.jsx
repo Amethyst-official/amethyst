@@ -30,15 +30,67 @@ const getProjectId = () => {
 
 const projectId = getProjectId();
 const urlParams = new URLSearchParams(location.search);
+const isAmethystExport = urlParams.has('amethyst_export');
 
 let vm;
 
+const postToParent = message => {
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage(message, '*');
+    }
+};
+
+const loadExportedProject = data => {
+    if (!vm || !data || data.type !== 'amethyst-export-project') {
+        return;
+    }
+
+    const projectData = data.projectData;
+    if (!(projectData instanceof ArrayBuffer)) {
+        postToParent({
+            type: 'amethyst-export-project-error',
+            message: 'Export did not include valid project data.'
+        });
+        return;
+    }
+
+    vm.quit();
+    vm.clear();
+    vm.loadProject(projectData)
+        .then(() => {
+            if (data.title) {
+                document.title = data.title;
+            }
+            vm.start();
+            if (data.autoplay || urlParams.has('autoplay')) {
+                vm.greenFlag();
+            }
+            postToParent({
+                type: 'amethyst-export-project-loaded'
+            });
+        })
+        .catch(error => {
+            postToParent({
+                type: 'amethyst-export-project-error',
+                message: error && error.message ? error.message : `${error}`
+            });
+        });
+};
+
 const onVmInit = _vm => {
     vm = _vm;
+    if (isAmethystExport) {
+        window.addEventListener('message', event => {
+            loadExportedProject(event.data);
+        });
+        postToParent({
+            type: 'amethyst-export-player-ready'
+        });
+    }
 };
 
 const onProjectLoaded = () => {
-    if (urlParams.has('autoplay')) {
+    if (urlParams.has('autoplay') && !isAmethystExport) {
         vm.start();
         vm.greenFlag();
     }
