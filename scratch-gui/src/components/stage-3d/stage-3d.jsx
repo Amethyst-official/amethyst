@@ -20,7 +20,8 @@ import {
 } from '../../lib/scratch3d/stage3d-target-sync.js';
 import {
     getScratch3DStageMode,
-    onScratch3DStageModeChange
+    onScratch3DStageModeChange,
+    setScratch3DStageMode
 } from '../../lib/scratch3d/stage-mode.js';
 import styles from './stage-3d.css';
 
@@ -128,6 +129,54 @@ const vectorFromState = value => new THREE.Vector3(value.x || 0, value.y || 0, v
 const pivotFromTarget = target => vectorFromState(target.modelPivot || {x: 0, y: 0, z: 0});
 const formatNumber = value => (Number.isFinite(value) ? value.toFixed(1) : '0.0');
 const formatVector = value => `${formatNumber(value.x)}, ${formatNumber(value.y)}, ${formatNumber(value.z)}`;
+const DEBUG_SETTINGS_STORAGE_KEY = 'amethyst:debug-overlay-settings';
+const DEFAULT_DEBUG_SETTINGS = {
+    layout: 'compact',
+    sections: {
+        performance: true,
+        camera: true,
+        actor: true,
+        environment: true,
+        input: true
+    },
+    helpers: {
+        grid: true,
+        axes: true,
+        cameraRay: true,
+        targetPoint: true
+    }
+};
+const normalizeDebugSettings = settings => ({
+    layout: ['compact', 'full', 'custom'].includes(settings && settings.layout) ?
+        settings.layout :
+        DEFAULT_DEBUG_SETTINGS.layout,
+    sections: {
+        ...DEFAULT_DEBUG_SETTINGS.sections,
+        ...((settings && settings.sections) || {})
+    },
+    helpers: {
+        ...DEFAULT_DEBUG_SETTINGS.helpers,
+        ...((settings && settings.helpers) || {})
+    }
+});
+const readDebugSettings = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return DEFAULT_DEBUG_SETTINGS;
+    }
+    try {
+        return normalizeDebugSettings(JSON.parse(window.localStorage.getItem(DEBUG_SETTINGS_STORAGE_KEY)));
+    } catch (e) {
+        return DEFAULT_DEBUG_SETTINGS;
+    }
+};
+const writeDebugSettings = settings => {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    try {
+        window.localStorage.setItem(DEBUG_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    } catch (e) {
+        // Debug settings are nice-to-have, never project-critical.
+    }
+};
 const getAccentColor = element => {
     const fallback = '#855cd6';
     if (!element || !window.getComputedStyle) return new THREE.Color(fallback);
@@ -141,12 +190,15 @@ const getAccentColor = element => {
     }
 };
 
-const buildDebugSnapshot = (camera, controls, vm, targetObjects, mouseState, sceneState) => {
+const buildDebugSnapshot = (camera, controls, renderer, vm, targetObjects, mouseState, sceneState, frameStats) => {
     const direction = new THREE.Vector3();
     camera.getWorldDirection(direction);
     const targets = (vm && vm.runtime && vm.runtime.targets) || [];
     const selectedTarget = vm && vm.editingTarget && !vm.editingTarget.isStage ? vm.editingTarget : null;
     const cameraState = (sceneState && sceneState.camera) || {};
+    const backgroundState = (sceneState && sceneState.background) || {};
+    const lightingState = (sceneState && sceneState.lighting) || {};
+    const renderInfo = renderer.info && renderer.info.render ? renderer.info.render : {};
     return {
         actorCount: Array.from(targetObjects.values()).filter(object => object.visible).length,
         cameraFov: camera.fov,
@@ -154,11 +206,30 @@ const buildDebugSnapshot = (camera, controls, vm, targetObjects, mouseState, sce
         cameraTarget: controls.target.clone(),
         direction,
         followEnabled: Boolean(cameraState.follow && cameraState.follow.enabled),
+        environment: {
+            ambient: lightingState.ambient,
+            fogAmount: backgroundState.fogAmount || 0,
+            groundColor: backgroundState.groundColor || '#d7eef7',
+            key: lightingState.key,
+            skyColor: backgroundState.skyColor || '#8fc6ff',
+            skyMode: backgroundState.mode || 'sky',
+            sunColor: lightingState.keyColor || '#ffffff'
+        },
+        performance: {
+            calls: renderInfo.calls || 0,
+            frameTime: frameStats.frameTime,
+            fps: frameStats.fps,
+            triangles: renderInfo.triangles || 0
+        },
         mouseMode: mouseState.mode || 'normal',
         mouseLocked: Boolean(mouseState.locked),
+        mouseVisible: mouseState.visible !== false,
+        mouseSensitivity: mouseState.sensitivity || 1,
         targetCount: targets.filter(target => target && !target.isStage).length,
         selectedTarget: selectedTarget ? {
+            costume: selectedTarget.modelAssetName || selectedTarget.modelAssetId || 'None',
             name: selectedTarget.sprite && selectedTarget.sprite.name,
+            pivot: pivotFromTarget(selectedTarget),
             position: new THREE.Vector3(
                 selectedTarget.x || 0,
                 selectedTarget.y || 0,
@@ -183,13 +254,35 @@ const Stage3D = ({height, vm, width}) => {
     const [needsMouseClick, setNeedsMouseClick] = useState(false);
     const [stageMode, setStageMode] = useState(getScratch3DStageMode());
     const [debugSnapshot, setDebugSnapshot] = useState(null);
+    const [debugSettings, setDebugSettings] = useState(readDebugSettings);
+    const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
     const stageModeRef = useRef(stageMode);
+    const debugSettingsRef = useRef(debugSettings);
     useEffect(() => {
         stageModeRef.current = stageMode;
     }, [stageMode]);
     useEffect(() => {
+        const normalized = normalizeDebugSettings(debugSettings);
+        debugSettingsRef.current = normalized;
+        writeDebugSettings(normalized);
+    }, [debugSettings]);
+    useEffect(() => {
         const unsubscribe = onScratch3DStageModeChange(setStageMode);
         return unsubscribe;
+    }, []);
+    useEffect(() => {
+        const handleKeyDown = event => {
+            if (event.key !== 'F3') return;
+            event.preventDefault();
+            if (event.shiftKey) {
+                setScratch3DStageMode('debug');
+                setDebugSettingsOpen(open => !open);
+                return;
+            }
+            setScratch3DStageMode(stageModeRef.current === 'debug' ? 'view' : 'debug');
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     useEffect(() => {
@@ -244,6 +337,9 @@ const Stage3D = ({height, vm, width}) => {
         debugGrid.position.y = -1.45;
         debugGrid.visible = false;
         scene.add(debugGrid);
+        const debugAxes = new THREE.AxesHelper(220);
+        debugAxes.visible = false;
+        scene.add(debugAxes);
 
         const debugGroup = new THREE.Group();
         debugGroup.visible = false;
@@ -312,6 +408,8 @@ const Stage3D = ({height, vm, width}) => {
         let pointerLockWasRequested = false;
         let lastDebugSnapshotAt = 0;
         let lastCameraSmoothAt = performance.now();
+        let lastFrameAt = performance.now();
+        let smoothedFrameTime = 16.7;
         let isApplyingStoredCamera = false;
         const firstPersonEuler = new THREE.Euler(0, 0, 0, 'YXZ');
         let thirdPersonYaw = Math.atan2(camera.position.x, camera.position.z);
@@ -844,13 +942,21 @@ const Stage3D = ({height, vm, width}) => {
 
         let frameId = null;
         const animate = () => {
+            const frameNow = performance.now();
+            const frameTime = Math.max(0.1, frameNow - lastFrameAt);
+            lastFrameAt = frameNow;
+            smoothedFrameTime = (smoothedFrameTime * 0.9) + (frameTime * 0.1);
             syncSceneControls();
             syncMouseControls();
             syncTargets();
             syncDebugAccent();
             const debugMode = stageModeRef.current === 'debug';
-            debugGroup.visible = debugMode;
-            debugGrid.visible = debugMode;
+            const debugHelpers = debugSettingsRef.current.helpers || DEFAULT_DEBUG_SETTINGS.helpers;
+            debugGrid.visible = debugMode && Boolean(debugHelpers.grid);
+            debugAxes.visible = debugMode && Boolean(debugHelpers.axes);
+            debugGroup.visible = debugMode && (Boolean(debugHelpers.cameraRay) || Boolean(debugHelpers.targetPoint));
+            debugLookLine.visible = Boolean(debugHelpers.cameraRay);
+            debugTargetMarker.visible = Boolean(debugHelpers.targetPoint);
             if (debugMode) {
                 const debugStart = camera.position.clone();
                 const debugEnd = controls.target.clone();
@@ -866,10 +972,15 @@ const Stage3D = ({height, vm, width}) => {
                     setDebugSnapshot(buildDebugSnapshot(
                         camera,
                         controls,
+                        renderer,
                         vm,
                         targetObjects,
                         getMouseState(vm),
-                        getActiveSceneState(getBlockinumScene(vm))
+                        getActiveSceneState(getBlockinumScene(vm)),
+                        {
+                            fps: 1000 / smoothedFrameTime,
+                            frameTime: smoothedFrameTime
+                        }
                     ));
                 }
             }
@@ -897,6 +1008,7 @@ const Stage3D = ({height, vm, width}) => {
             debugGrid.geometry.dispose();
             const debugGridMaterials = Array.isArray(debugGrid.material) ? debugGrid.material : [debugGrid.material];
             debugGridMaterials.forEach(material => material.dispose());
+            debugAxes.dispose();
             groundMesh.geometry.dispose();
             groundMaterial.dispose();
             scene.remove(debugGroup);
@@ -918,6 +1030,71 @@ const Stage3D = ({height, vm, width}) => {
         renderer.setSize(width, height);
     }, [height, width]);
 
+    const updateDebugLayout = layout => {
+        setDebugSettings(settings => normalizeDebugSettings({
+            ...settings,
+            layout
+        }));
+    };
+    const toggleDebugSetting = (group, id) => {
+        setDebugSettings(settings => normalizeDebugSettings({
+            ...settings,
+            [group]: {
+                ...settings[group],
+                [id]: !settings[group][id]
+            }
+        }));
+    };
+    const handleDebugSettingsButtonClick = () => {
+        setDebugSettingsOpen(!debugSettingsOpen);
+    };
+    const handleDebugLayoutClick = event => {
+        updateDebugLayout(event.currentTarget.dataset.layout);
+    };
+    const handleDebugToggleChange = event => {
+        toggleDebugSetting(event.currentTarget.dataset.group, event.currentTarget.dataset.id);
+    };
+    const renderDebugRow = (label, value) => (
+        <React.Fragment key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+        </React.Fragment>
+    );
+    const renderDebugSection = (id, title, badge, rows) => {
+        if (debugSettings.layout === 'compact') return null;
+        if (debugSettings.layout === 'custom' && !debugSettings.sections[id]) return null;
+        return (
+            <div className={styles.debugSection}>
+                <div className={styles.debugHeader}>
+                    <span>{title}</span>
+                    <strong>{badge}</strong>
+                </div>
+                <dl>
+                    {rows.map(row => renderDebugRow(row[0], row[1]))}
+                </dl>
+            </div>
+        );
+    };
+    const renderDebugToggle = (group, id, label) => (
+        <label
+            className={styles.debugToggle}
+            key={`${group}-${id}`}
+            title={label}
+        >
+            <input
+                checked={Boolean(debugSettings[group][id])}
+                data-group={group}
+                data-id={id}
+                onChange={handleDebugToggleChange}
+                type="checkbox"
+            />
+            <span>{label}</span>
+        </label>
+    );
+    const activeSections = debugSettings.layout === 'full' ?
+        DEFAULT_DEBUG_SETTINGS.sections :
+        debugSettings.sections;
+
     return (
         <div
             aria-label="Amethyst stage"
@@ -928,47 +1105,112 @@ const Stage3D = ({height, vm, width}) => {
             {stageMode === 'debug' && debugSnapshot ? (
                 <div
                     className={styles.debugOverlay}
-                    title="Camera debug values"
+                    title="Amethyst debug values"
                 >
                     <div className={styles.debugHeader}>
-                        <span>{'Camera'}</span>
-                        <strong>{debugSnapshot.followEnabled ? 'Follow' : 'Free'}</strong>
+                        <span>{'Amethyst Debug'}</span>
+                        <button
+                            className={styles.debugSettingsButton}
+                            onClick={handleDebugSettingsButtonClick}
+                            title="Customize debug overlay"
+                            type="button"
+                        >
+                            {'F3'}
+                        </button>
                     </div>
-                    <dl>
-                        <dt>{'pos'}</dt>
-                        <dd>{formatVector(debugSnapshot.cameraPosition)}</dd>
-                        <dt>{'at'}</dt>
-                        <dd>{formatVector(debugSnapshot.cameraTarget)}</dd>
-                        <dt>{'dir'}</dt>
-                        <dd>{formatVector(debugSnapshot.direction)}</dd>
-                        <dt>{'zoom'}</dt>
-                        <dd>{formatNumber(debugSnapshot.cameraFov)}</dd>
-                        <dt>{'mouse'}</dt>
-                        <dd>{`${debugSnapshot.mouseMode}${debugSnapshot.mouseLocked ? ' locked' : ''}`}</dd>
-                        <dt>{'actors'}</dt>
-                        <dd>{`${debugSnapshot.actorCount}/${debugSnapshot.targetCount}`}</dd>
-                    </dl>
-                    {debugSnapshot.selectedTarget ? (
-                        <div className={styles.debugActor}>
-                            <div className={styles.debugHeader}>
-                                <span>{debugSnapshot.selectedTarget.name || 'Actor'}</span>
-                                <strong>{debugSnapshot.selectedTarget.visible ? 'Visible' : 'Hidden'}</strong>
+                    <div className={styles.debugCompact}>
+                        <span>{`FPS ${formatNumber(debugSnapshot.performance.fps)}`}</span>
+                        <span>{`Actors ${debugSnapshot.actorCount}/${debugSnapshot.targetCount}`}</span>
+                        <span>{`Cam ${formatVector(debugSnapshot.cameraPosition)}`}</span>
+                        <span>{debugSnapshot.selectedTarget ?
+                            `Actor ${debugSnapshot.selectedTarget.name || 'Selected'}` :
+                            'Actor none'}</span>
+                    </div>
+                    {debugSettingsOpen ? (
+                        <div className={styles.debugSettingsPanel}>
+                            <div className={styles.debugSegmented}>
+                                {['compact', 'full', 'custom'].map(layout => (
+                                    <button
+                                        className={debugSettings.layout === layout ? styles.activeDebugLayout : ''}
+                                        data-layout={layout}
+                                        key={layout}
+                                        onClick={handleDebugLayoutClick}
+                                        type="button"
+                                    >
+                                        {layout}
+                                    </button>
+                                ))}
                             </div>
-                            <dl>
-                                <dt>{'pos'}</dt>
-                                <dd>{formatVector(debugSnapshot.selectedTarget.position)}</dd>
-                                <dt>{'rot'}</dt>
-                                <dd>
-                                    {[
-                                        formatNumber(debugSnapshot.selectedTarget.rotation.yaw),
-                                        formatNumber(debugSnapshot.selectedTarget.rotation.pitch),
-                                        formatNumber(debugSnapshot.selectedTarget.rotation.roll)
-                                    ].join(', ')}
-                                </dd>
-                                <dt>{'scale'}</dt>
-                                <dd>{formatNumber(debugSnapshot.selectedTarget.scale)}</dd>
-                            </dl>
+                            <div className={styles.debugSettingsGrid}>
+                                {Object.keys(DEFAULT_DEBUG_SETTINGS.sections).map(id => renderDebugToggle(
+                                    'sections',
+                                    id,
+                                    id
+                                ))}
+                            </div>
+                            <div className={styles.debugSettingsGrid}>
+                                {Object.keys(DEFAULT_DEBUG_SETTINGS.helpers).map(id => renderDebugToggle(
+                                    'helpers',
+                                    id,
+                                    id
+                                ))}
+                            </div>
                         </div>
+                    ) : null}
+                    {activeSections.performance ? renderDebugSection('performance', 'Performance', 'F3', [
+                        ['fps', formatNumber(debugSnapshot.performance.fps)],
+                        ['frame', `${formatNumber(debugSnapshot.performance.frameTime)} ms`],
+                        ['draws', debugSnapshot.performance.calls],
+                        ['tris', debugSnapshot.performance.triangles]
+                    ]) : null}
+                    {activeSections.camera ? renderDebugSection(
+                        'camera',
+                        'Camera',
+                        debugSnapshot.followEnabled ? 'Follow' : 'Free',
+                        [
+                            ['pos', formatVector(debugSnapshot.cameraPosition)],
+                            ['at', formatVector(debugSnapshot.cameraTarget)],
+                            ['dir', formatVector(debugSnapshot.direction)],
+                            ['fov', formatNumber(debugSnapshot.cameraFov)]
+                        ]
+                    ) : null}
+                    {activeSections.actor && debugSnapshot.selectedTarget ? renderDebugSection(
+                        'actor',
+                        debugSnapshot.selectedTarget.name || 'Actor',
+                        debugSnapshot.selectedTarget.visible ? 'Visible' : 'Hidden',
+                        [
+                            ['pos', formatVector(debugSnapshot.selectedTarget.position)],
+                            ['rot', [
+                                formatNumber(debugSnapshot.selectedTarget.rotation.yaw),
+                                formatNumber(debugSnapshot.selectedTarget.rotation.pitch),
+                                formatNumber(debugSnapshot.selectedTarget.rotation.roll)
+                            ].join(', ')],
+                            ['scale', formatNumber(debugSnapshot.selectedTarget.scale)],
+                            ['pivot', formatVector(debugSnapshot.selectedTarget.pivot)],
+                            ['model', debugSnapshot.selectedTarget.costume]
+                        ]
+                    ) : null}
+                    {activeSections.environment ? renderDebugSection(
+                        'environment',
+                        'Environment',
+                        debugSnapshot.environment.skyMode,
+                        [
+                            ['sky', debugSnapshot.environment.skyColor],
+                            ['ground', debugSnapshot.environment.groundColor],
+                            ['fog', formatNumber(debugSnapshot.environment.fogAmount)],
+                            ['ambient', formatNumber(debugSnapshot.environment.ambient)],
+                            ['sun', debugSnapshot.environment.sunColor]
+                        ]
+                    ) : null}
+                    {activeSections.input ? renderDebugSection(
+                        'input',
+                        'Input',
+                        debugSnapshot.mouseLocked ? 'Locked' : 'Free',
+                        [
+                            ['mouse', debugSnapshot.mouseMode],
+                            ['visible', debugSnapshot.mouseVisible ? 'yes' : 'no'],
+                            ['sens', formatNumber(debugSnapshot.mouseSensitivity)]
+                        ]
                     ) : null}
                 </div>
             ) : null}
