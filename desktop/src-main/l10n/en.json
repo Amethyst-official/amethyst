@@ -48,8 +48,8 @@
     "developer_comment": "macOS menu bar item to open addon settings window"
   },
   "menu.package": {
-    "string": "Export HTML (Experimental)",
-    "developer_comment": "macOS menu bar item to export the editor project as an experimental standalone HTML app"
+    "string": "Export HTML Game...",
+    "developer_comment": "macOS menu bar item to export the editor project as an Amethyst HTML game"
   },
   "menu.reload": {
     "string": "Reload",

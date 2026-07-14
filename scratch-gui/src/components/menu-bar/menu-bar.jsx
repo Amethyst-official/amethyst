@@ -684,9 +684,9 @@ class MenuBar extends React.Component {
                                                 onClick={this.handleClickPackager}
                                             >
                                                 <FormattedMessage
-                                                    defaultMessage="Export single-file HTML"
+                                                    defaultMessage="Export HTML game"
                                                     // eslint-disable-next-line max-len
-                                                    description="Menu bar item to export the current project as a standalone single-file HTML app"
+                                                    description="Menu bar item to export the current project as a playable Amethyst HTML game"
                                                     id="tw.menuBar.package"
                                                 />
                                             </MenuItem>

@@ -3,7 +3,7 @@ const path = require('path');
 const nodeURL = require('url');
 const zlib = require('zlib');
 const nodeCrypto = require('crypto');
-const {app, dialog} = require('electron');
+const {app, dialog, shell} = require('electron');
 const ProjectRunningWindow = require('./project-running-window');
 const AddonsWindow = require('./addons');
 const DesktopSettingsWindow = require('./desktop-settings');
@@ -521,6 +521,10 @@ class EditorWindow extends ProjectRunningWindow {
     });
 
     this.ipc.handle('export-html-file', async (event, suggestedName, html) => {
+      if (typeof html !== 'string' || !html.trim()) {
+        throw new Error('The generated HTML export was empty.');
+      }
+
       const result = await dialog.showSaveDialog(this.window, {
         defaultPath: path.join(settings.lastDirectory, suggestedName || 'Amethyst Game.html'),
         filters: [
@@ -534,7 +538,7 @@ class EditorWindow extends ProjectRunningWindow {
         return null;
       }
 
-      const filePath = result.filePath;
+      const filePath = /\.html?$/i.test(result.filePath) ? result.filePath : `${result.filePath}.html`;
       const unsafePath = getUnsafePaths().find(i => isChildPath(i.path, filePath));
       if (unsafePath) {
         dialog.showMessageBox(this.window, {
@@ -552,9 +556,24 @@ class EditorWindow extends ProjectRunningWindow {
       settings.lastDirectory = path.dirname(filePath);
       await settings.save();
       await writeFileAtomic(filePath, html);
+      const bytes = Buffer.byteLength(html, 'utf8');
+      const messageResult = await dialog.showMessageBox(this.window, {
+        type: 'info',
+        title: APP_NAME,
+        message: 'Exported HTML game',
+        detail: `${path.basename(filePath)} was saved successfully.\n\nThis HTML file contains the project data and loads the Amethyst web player when opened.`,
+        buttons: ['Show in Folder', 'OK'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true
+      });
+      if (messageResult.response === 0) {
+        shell.showItemInFolder(filePath);
+      }
 
       return {
-        path: filePath
+        path: filePath,
+        bytes
       };
     });
 

@@ -16,6 +16,18 @@ const getRuntimeUrl = () => {
     return undefined;
 };
 
+const getAmethystVersion = () => {
+    if (typeof process !== 'undefined' && process.env && process.env.npm_package_version) {
+        return process.env.npm_package_version;
+    }
+    return 'unknown';
+};
+
+const alertExportError = error => {
+    const message = error && error.message ? error.message : String(error || 'Unknown error');
+    window.alert(`Could not export HTML game.\n\n${message}`);
+};
+
 const PackagerIntegrationHOC = function (WrappedComponent) {
     class PackagerIntegrationComponent extends React.Component {
         constructor (props) {
@@ -31,6 +43,7 @@ const PackagerIntegrationHOC = function (WrappedComponent) {
                 .then(projectData => buildAmethystExportHTML({
                     projectData,
                     title: this.props.reduxProjectTitle,
+                    amethystVersion: getAmethystVersion(),
                     runtimeUrl: this.props.htmlExportRuntimeUrl || getRuntimeUrl()
                 }))
                 .then(html => {
@@ -41,9 +54,11 @@ const PackagerIntegrationHOC = function (WrappedComponent) {
                     downloadBlob(filename, new Blob([html], {
                         type: 'text/html'
                     }));
+                    window.alert('Exported HTML game.');
                 })
                 .catch(error => {
                     log.error(error);
+                    alertExportError(error);
                 });
         }
         render () {
