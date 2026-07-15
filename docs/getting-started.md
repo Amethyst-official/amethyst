@@ -2,7 +2,7 @@
 
 This guide is for people testing Amethyst locally.
 
-Amethyst is still early. Expect some rough edges, especially around project saving, complex imported models, and new 3D editor tools.
+Amethyst is still early. Expect some rough edges, especially around complex imported models, exported HTML playback, and new 3D editor tools.
 
 ## Run The Editor
 
@@ -30,7 +30,8 @@ If that port is already busy, the dev server may pick another port. Use the URL 
 4. Add or import a GLB/GLTF model.
 5. Use blocks to move the actor in 3D.
 6. Use camera blocks or the stage camera controls to view the scene.
-7. Save as an Amethyst project when the save flow is stable enough for your test.
+7. Save as an `.amx` Amethyst project.
+8. If testing the desktop app, export a single-file HTML build and open it offline.
 
 ## Actors And Models
 
@@ -58,13 +59,15 @@ Use the 3D motion blocks:
 - `z position`
 - yaw, pitch, and roll turn blocks
 
-The coordinate mapping is direct:
+The user-facing coordinate direction is:
 
 ```text
-Amethyst x -> Three.js x
-Amethyst y -> Three.js y
-Amethyst z -> Three.js z
+x -> left/right
+y -> forward/back
+z -> up/down
 ```
+
+Internally, Three.js may use a different axis convention. Blocks and docs should describe the kid-facing Amethyst convention.
 
 The stage is intended to feel effectively infinite. Actors can move far outside the old 2D Scratch stage size.
 
@@ -108,7 +111,7 @@ These are 3D stage settings, not 2D backdrops.
 
 ## Saving Projects
 
-Amethyst is moving toward `.amx` as its native project format.
+Amethyst uses `.amx` as its native project format.
 
 `.amx` is not `.sb3`.
 
@@ -124,7 +127,22 @@ The intended save data includes:
 - stage/backdrop settings
 - future model editing data
 
-Save/load is still an active area. Test it often, and keep backups of important experiments.
+Save/load is active and should work for normal Amethyst projects, but keep backups while the format is still changing.
+
+## Desktop HTML Export
+
+The desktop app can export a project into one offline `.html` file.
+
+Use this when you want to share/play a finished Amethyst project without shipping the editor.
+
+Important details:
+
+- export input is `.amx`
+- export output is `.html`
+- this is not `.sb3` export
+- the exported file bundles the player runtime
+- project data is embedded as chunked base85 data to avoid huge base64 strings
+- the exported file is for playing, not editing
 
 ## Common Problems
 

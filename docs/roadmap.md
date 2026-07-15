@@ -2,7 +2,7 @@
 
 This roadmap is a working direction, not a promise.
 
-Amethyst is early. The priority is to make the web editor genuinely usable before polishing desktop packaging or advanced features.
+Amethyst is early. The priority is to make the editor, `.amx` files, 3D actors, and desktop HTML export reliable enough for a first public desktop release.
 
 ## Now
 
@@ -17,6 +17,8 @@ Focus:
 - environment blocks
 - mouse blocks
 - `.amx` save/load reliability
+- desktop single-file offline HTML export reliability
+- 64-bit Electron desktop packaging
 - clear docs
 - clean Amethyst branding with legal credits intact
 
@@ -33,6 +35,8 @@ After the basics feel solid:
 - custom stage/background UI polish
 - HDRI/panorama background improvements
 - better debug mode
+- desktop release checklist polish
+- larger exported-HTML stress tests
 - more complete block examples
 - beginner tutorials
 
@@ -40,7 +44,8 @@ After the basics feel solid:
 
 Useful later features:
 
-- desktop app packaging
+- 32-bit Electron packaging
+- experimental Tauri x64 packaging
 - optional physics library
 - optional controller/gamepad helpers
 - project templates
@@ -94,8 +99,9 @@ Docs still needed:
 
 - model editing deep dive
 - `.amx` format details after implementation stabilizes
+- desktop export troubleshooting guide
 - complete block examples
 - first game tutorial
 - model import troubleshooting guide with screenshots
 - AmethystAI safety and setup guide
-- desktop build guide when desktop becomes active
+- 32-bit Electron and Tauri build guides after those targets work

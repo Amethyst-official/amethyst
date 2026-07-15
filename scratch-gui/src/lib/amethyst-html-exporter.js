@@ -24,17 +24,6 @@ const formatBytes = bytes => {
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 };
 
-const arrayBufferToBase64 = buffer => {
-    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-    let binary = '';
-    const chunkSize = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.subarray(i, i + chunkSize);
-        binary += String.fromCharCode.apply(null, chunk);
-    }
-    return btoa(binary);
-};
-
 const blobToArrayBuffer = blob => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
@@ -42,7 +31,7 @@ const blobToArrayBuffer = blob => new Promise((resolve, reject) => {
     reader.readAsArrayBuffer(blob);
 });
 
-const projectDataToArrayBuffer = async projectData => {
+const projectDataToArrayBuffer = projectData => {
     if (projectData instanceof Blob) {
         return blobToArrayBuffer(projectData);
     }
@@ -58,6 +47,57 @@ const projectDataToArrayBuffer = async projectData => {
     throw new Error('Unsupported Amethyst export data');
 };
 
+const getBase85EncodeCharacter = n => {
+    n += 0x2a;
+    if (n === 0x3c) return 0x28;
+    if (n === 0x3e) return 0x29;
+    return n;
+};
+
+const encodeBase85 = bytes => {
+    const originalLength = bytes.length;
+    let dataView;
+
+    if (originalLength % 4 === 0) {
+        dataView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    } else {
+        const padded = new Uint8Array(Math.ceil(originalLength / 4) * 4);
+        padded.set(bytes);
+        dataView = new DataView(padded.buffer);
+    }
+
+    const encoded = new Uint8Array(Math.ceil(originalLength / 4) * 5);
+    let encodedIndex = 0;
+
+    for (let i = 0; i < dataView.byteLength; i += 4) {
+        let n = dataView.getUint32(i, true);
+        encoded[encodedIndex++] = getBase85EncodeCharacter(n % 85);
+        n = Math.floor(n / 85);
+        encoded[encodedIndex++] = getBase85EncodeCharacter(n % 85);
+        n = Math.floor(n / 85);
+        encoded[encodedIndex++] = getBase85EncodeCharacter(n % 85);
+        n = Math.floor(n / 85);
+        encoded[encodedIndex++] = getBase85EncodeCharacter(n % 85);
+        n = Math.floor(n / 85);
+        encoded[encodedIndex++] = getBase85EncodeCharacter(n % 85);
+    }
+
+    return new TextDecoder().decode(encoded);
+};
+
+const buildProjectChunkScripts = projectBytes => {
+    const chunkSize = 1024 * 64;
+    const chunks = [];
+    for (let i = 0; i < projectBytes.length; i += chunkSize) {
+        const chunk = projectBytes.subarray(i, i + chunkSize);
+        chunks.push(
+            `<script data-amethyst-project="${encodeBase85(chunk)}">` +
+            `decodeProjectChunk(${chunk.length})</script>`
+        );
+    }
+    return chunks.join('\n');
+};
+
 const buildAmethystExportHTML = async ({
     projectData,
     title,
@@ -69,7 +109,10 @@ const buildAmethystExportHTML = async ({
     const cleanTitle = normalizeTitle(title);
     const projectBuffer = await projectDataToArrayBuffer(projectData);
     const projectBytes = projectBuffer.byteLength;
-    const projectBase64 = arrayBufferToBase64(projectBuffer);
+    const projectBytesView = new Uint8Array(projectBuffer);
+    const projectPaddedBytes = Math.ceil(projectBytes / 4) * 4;
+    const projectChunkCount = Math.ceil(projectBytes / (1024 * 64));
+    const projectChunkScripts = buildProjectChunkScripts(projectBytesView);
     const payload = JSON.stringify({
         app: 'Amethyst',
         format: 'amx',
@@ -77,13 +120,15 @@ const buildAmethystExportHTML = async ({
         exportedAt: new Date().toISOString(),
         amethystVersion,
         title: cleanTitle,
+        projectEncoding: 'base85-chunks',
         projectBytes,
+        projectPaddedBytes,
+        projectChunkCount,
         offlineRuntimeHtml: offlineRuntime && offlineRuntime.html ? offlineRuntime.html : null,
         offlineRuntimeBytes: offlineRuntime && offlineRuntime.bytes ? offlineRuntime.bytes : 0,
         offlineRuntimeFileCount: offlineRuntime && offlineRuntime.fileCount ? offlineRuntime.fileCount : 0,
         runtimeUrl,
-        fallbackRuntimeUrl,
-        projectBase64
+        fallbackRuntimeUrl
     })
         .replace(/</g, '\\u003c')
         .replace(/>/g, '\\u003e')
@@ -203,14 +248,57 @@ a.button.secondary {
     <div class="panel">
         <div class="brand"><span class="brand-mark"></span><span>Amethyst HTML Export</span></div>
         <div class="title">Loading ${escapeHTML(cleanTitle)}</div>
-        <div class="detail">${offlineRuntime ? 'This file contains your project and the Amethyst player runtime. It works offline.' : 'This file contains your project and loads the Amethyst web player.'}</div>
-        <div class="meta">Project size: ${escapeHTML(formatBytes(projectBytes))}.${offlineRuntime ? ` Runtime size: ${escapeHTML(formatBytes(offlineRuntime.bytes || 0))}.` : ''} Exported: ${escapeHTML(new Date().toLocaleString())}.</div>
+        <div class="detail">${
+    offlineRuntime ?
+        'This file contains your project and the Amethyst player runtime. It works offline.' :
+        'This file contains your project and loads the Amethyst web player.'
+}</div>
+        <div class="meta">Project size: ${escapeHTML(formatBytes(projectBytes))}.${
+    offlineRuntime ? ` Runtime size: ${escapeHTML(formatBytes(offlineRuntime.bytes || 0))}.` : ''
+} Exported: ${escapeHTML(new Date().toLocaleString())}.</div>
         <div class="actions" id="actions">
             <button id="retry" type="button">Retry</button>
-            ${offlineRuntime ? '' : `<a class="button secondary" href="${escapeHTML(runtimeUrl)}" target="_blank" rel="noopener noreferrer">Open player</a>`}
+            ${
+    offlineRuntime ?
+        '' :
+        `<a class="button secondary" href="${escapeHTML(runtimeUrl)}" ` +
+        'target="_blank" rel="noopener noreferrer">Open player</a>'
+}
         </div>
     </div>
 </div>
+<script>
+var amethystProjectDecodeBuffer = new ArrayBuffer(${projectPaddedBytes});
+var amethystProjectBuffer = null;
+var amethystProjectDecodeIndex = 0;
+var getBase85DecodeValue = function (code) {
+    if (code === 0x28) code = 0x3c;
+    if (code === 0x29) code = 0x3e;
+    return code - 0x2a;
+};
+var base85Decode = function (str, outBuffer, outOffset) {
+    var view = new DataView(outBuffer, outOffset, Math.floor(str.length / 5 * 4));
+    for (var i = 0, j = 0; i < str.length; i += 5, j += 4) {
+        view.setUint32(j, (
+            getBase85DecodeValue(str.charCodeAt(i + 4)) * 85 * 85 * 85 * 85 +
+            getBase85DecodeValue(str.charCodeAt(i + 3)) * 85 * 85 * 85 +
+            getBase85DecodeValue(str.charCodeAt(i + 2)) * 85 * 85 +
+            getBase85DecodeValue(str.charCodeAt(i + 1)) * 85 +
+            getBase85DecodeValue(str.charCodeAt(i))
+        ), true);
+    }
+};
+var decodeProjectChunk = function (size) {
+    base85Decode(
+        document.currentScript.getAttribute('data-amethyst-project'),
+        amethystProjectDecodeBuffer,
+        amethystProjectDecodeIndex
+    );
+    document.currentScript.remove();
+    amethystProjectDecodeIndex += size;
+};
+</script>
+${projectChunkScripts}
 <script>
 (function () {
     'use strict';
@@ -239,24 +327,27 @@ a.button.secondary {
         }
     };
 
-    var base64ToArrayBuffer = function (base64) {
-        var binary = atob(base64);
-        var bytes = new Uint8Array(binary.length);
-        for (var i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+    var getProjectBuffer = function () {
+        if (amethystProjectBuffer) {
+            return amethystProjectBuffer;
         }
-        return bytes.buffer;
+        if (amethystProjectDecodeIndex !== exportData.projectBytes) {
+            throw new Error('Project payload is incomplete.');
+        }
+        amethystProjectBuffer = amethystProjectDecodeBuffer.slice(0, exportData.projectBytes);
+        amethystProjectDecodeBuffer = null;
+        return amethystProjectBuffer;
     };
 
     var postProject = function () {
         if (!iframe.contentWindow) return;
-        var buffer = base64ToArrayBuffer(exportData.projectBase64);
+        var buffer = getProjectBuffer();
         iframe.contentWindow.postMessage({
             type: 'amethyst-export-project',
             title: exportData.title,
             projectData: buffer,
             autoplay: true
-        }, playerOrigin, [buffer]);
+        }, playerOrigin);
         posted = true;
     };
 
@@ -298,7 +389,8 @@ a.button.secondary {
             if (loaded) return;
             setStatus(
                 'Player did not respond',
-                'Check your internet connection, then retry. This first Amethyst desktop export format uses the online Amethyst player.',
+                'Check your internet connection, then retry. ' +
+                    'This first Amethyst desktop export format uses the online Amethyst player.',
                 true
             );
         }, 12000);
@@ -322,7 +414,10 @@ a.button.secondary {
         } else if (data.type === 'amethyst-export-project-error') {
             setStatus(
                 'Could not load project',
-                data.message || 'The Amethyst player reported an export loading error. Export again from a newer Amethyst Desktop build.',
+                data.message || (
+                    'The Amethyst player reported an export loading error. ' +
+                    'Export again from a newer Amethyst Desktop build.'
+                ),
                 true
             );
         }

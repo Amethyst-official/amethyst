@@ -1,8 +1,8 @@
 # Amethyst Desktop
 
-Desktop shell work for Amethyst.
+Desktop shell for Amethyst.
 
-The web editor is the current priority. This folder is kept as the Electron/desktop packaging path for later Amethyst builds.
+This folder builds the Electron desktop app. The desktop app is the current home for paid pre-built binaries and desktop-only export features, especially single-file offline HTML export.
 
 Licensed under the GPLv3.0. See LICENSE for more information.
 
@@ -20,7 +20,7 @@ This folder still follows the original Electron package layout. Install dependen
 npm ci
 ```
 
-Then fetch extra library, packager, and extension files when desktop packaging is being worked on:
+Then fetch extra library, packager, and extension files:
 
 ```bash
 npm run fetch
@@ -42,6 +42,18 @@ Once you have everything compiled and fetched, start a development Electron inst
 
 ```bash
 npm run electron:start
+```
+
+To create the unpacked Windows test build:
+
+```bash
+npm run electron:package:dir
+```
+
+On Windows, the test executable is created at:
+
+```text
+dist/win-unpacked/Amethyst.exe
 ```
 
 Due to the security requirements mandated by custom extensions existing, the desktop app is significantly more complicated than the web editor.
@@ -97,13 +109,35 @@ npx electron-builder --linux deb
 
 You can typically only package for a certain operating system while on that operating system.
 
+## Desktop HTML Export
+
+Desktop export takes an editable `.amx` project and creates one offline `.html` playback file.
+
+Current export rules:
+
+ - `.amx` is the editable project format.
+ - `.html` is the exported playback format.
+ - The exported HTML is not meant to be edited by users.
+ - The generated HTML bundles the Amethyst player runtime.
+ - Project data is embedded as base85 chunks to avoid one giant base64 string.
+ - Export is desktop-only for now.
+
+Before shipping a public desktop binary, test export with:
+
+ - a blank/simple project
+ - a project with scripts
+ - a project with model actors
+ - a project with camera and environment blocks
+ - a larger model-heavy project
+ - internet disabled
+
 ## Code signing policy
 
 The upstream desktop project used free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/). Amethyst has not set up production desktop signing yet.
 
  * Approvers:
    * [GarboMuffin](https://github.com/GarboMuffin)
- * Amethyst signing and privacy policy details still need to be finalized before desktop release.
+ * Amethyst signing and privacy policy details still need to be finalized before wide desktop release.
 
 ## Advanced customizations
 
@@ -119,4 +153,4 @@ Create the file `userscript.js` in this folder to configure custom JS. Create th
 
 ## Uninstall
 
-Desktop uninstall docs will be added when Amethyst desktop packaging is active.
+Desktop uninstall docs still need to be written before a polished public release.

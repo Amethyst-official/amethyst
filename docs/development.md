@@ -44,7 +44,7 @@ scratch-storage
   Asset and project storage helpers.
 
 desktop
-  Future desktop packaging path. Not the current priority.
+  Electron desktop shell, offline export path, release packaging, and desktop-only integration points.
 ```
 
 ## Current 3D Architecture
@@ -76,6 +76,12 @@ scratch-vm/src/blocks/scratch3_scene3d.js
 
 scratch-vm/src/blocks/
   Other block primitive changes.
+
+desktop/src-main/
+  Electron main process, menus, windows, file dialogs, and desktop-only actions.
+
+desktop/src-renderer-webpack/
+  Desktop renderer bundles that wrap the editor and embed/player surfaces.
 ```
 
 ## Design Rules
@@ -142,6 +148,18 @@ Be careful with:
 
 The model editor should stay kid-friendly. It should help creators adjust pivots, parts, colors, and simple transforms without turning Amethyst into Blender.
 
+## Desktop Export Direction
+
+Desktop export should stay focused on one user-facing output:
+
+```text
+.amx -> single offline .html
+```
+
+Do not bring back `.sb3` wording in the export flow. Do not make exported HTML an editing format. Users edit `.amx` inside Amethyst, then export a fresh HTML playback file.
+
+The exporter should avoid huge one-string payloads. Use chunked project data and keep the player runtime bundled so the generated file can open offline.
+
 ## Save Format Direction
 
 Amethyst should use `.amx` as its native project format.
@@ -181,6 +199,16 @@ For 3D changes:
 - Check model import with a simple GLB.
 - Check model visibility.
 - Check save/load if the change touches project state.
+
+For desktop export changes:
+
+- Build `scratch-gui`.
+- Run the focused exporter unit tests.
+- Run `npm run webpack:compile` in `desktop`.
+- Run `npm run electron:package:dir` in `desktop`.
+- Open `desktop\dist\win-unpacked\Amethyst.exe`.
+- Export a simple `.amx` to `.html`.
+- Open the exported HTML with network disabled.
 
 ## Branding
 

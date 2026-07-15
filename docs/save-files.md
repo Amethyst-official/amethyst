@@ -1,10 +1,10 @@
 # Save Files
 
-Amethyst uses `.amx` as its native project format direction.
+Amethyst uses `.amx` as its native project format.
 
 `.amx` is not Scratch `.sb3`.
 
-> Status: save/load is still being stabilized. Treat important projects as experimental and keep backups.
+> Status: save/load is active, but the format is still young. Keep backups for serious projects while the editor is changing quickly.
 
 ## Why A New Format
 
@@ -134,6 +134,27 @@ Do not assume:
 
 Scratch compatibility can be explored later, but it is not a v1 requirement.
 
+## Desktop HTML Export
+
+The desktop app can export an `.amx` project into a single offline `.html` file.
+
+That exported HTML is a playback bundle, not the native project format.
+
+```text
+.amx -> .html
+```
+
+Do not treat exported HTML as an editable project source. Users should edit the `.amx` in Amethyst and export a fresh HTML file when they want a playable build.
+
+Current exporter direction:
+
+- only desktop exposes the export flow
+- the generated file is one `.html`
+- the Amethyst player runtime is bundled into the file
+- the `.amx` project payload is embedded in base85 chunks
+- chunking avoids one huge base64 payload and reduces browser crash risk
+- exported files are intended to open offline
+
 ## Versioning
 
 The format should include a version field.
@@ -167,12 +188,24 @@ Save/load should be considered healthy only when this works:
 - environment remains
 - model costume list remains
 
+Export should be considered healthy only when this works:
+
+- save a project as `.amx`
+- export single-file `.html` from desktop
+- disconnect internet or block network
+- open exported `.html`
+- actor models appear
+- scripts run
+- camera settings load
+- environment settings load
+- no `.sb3` wording appears in the export path
+
 ## User Warning
 
-Until save/load is fully stable, warn users not to rely on a single `.amx` file for important work.
+Until save/load and export are fully battle-tested, warn users to keep the editable `.amx` and backups. Do not tell users to edit exported HTML.
 
 Suggested wording:
 
 ```text
-Amethyst projects are still experimental. Keep backup copies while save/load is being improved.
+Amethyst projects are still evolving. Keep backup copies, and keep the original .amx after exporting HTML.
 ```
