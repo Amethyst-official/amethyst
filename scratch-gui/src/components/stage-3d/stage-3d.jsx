@@ -66,7 +66,7 @@ const disposeObject = object => {
 };
 
 const applyTargetTransform = (object, target) => {
-    object.position.set(target.x || 0, target.y || 0, target.z || 0);
+    object.position.copy(vmVectorToThree(target));
     object.visible = target.visible !== false;
     object.rotation.y = THREE.MathUtils.degToRad(90 - (target.direction || 90));
     object.rotation.x = THREE.MathUtils.degToRad(target.pitch || 0);
@@ -78,7 +78,7 @@ const getBlockinumScene = vm => (vm && vm.runtime && vm.runtime.scratch3dScene) 
     revision: 0,
     camera: {
         position: {x: 260, y: 180, z: 420},
-        target: {x: 0, y: 20, z: 0},
+        target: {x: 0, y: 0, z: 20},
         fov: 55,
         smoothingDuration: 0,
         follow: {
@@ -92,7 +92,7 @@ const getBlockinumScene = vm => (vm && vm.runtime && vm.runtime.scratch3dScene) 
         ambient: 1.6,
         key: 1.2,
         keyColor: '#ffffff',
-        keyPosition: {x: 180, y: 320, z: 240}
+        keyPosition: {x: 180, y: 240, z: 320}
     },
     background: {
         mode: 'sky',
@@ -125,7 +125,13 @@ const getActiveSceneState = sceneState => {
     return sceneState;
 };
 
-const vectorFromState = value => new THREE.Vector3(value.x || 0, value.y || 0, value.z || 0);
+const vmVectorToThree = value => new THREE.Vector3(value.x || 0, value.z || 0, value.y || 0);
+const threeVectorToVm = value => ({
+    x: Number(value.x.toFixed(3)),
+    y: Number(value.z.toFixed(3)),
+    z: Number(value.y.toFixed(3))
+});
+const vectorFromState = vmVectorToThree;
 const pivotFromTarget = target => vectorFromState(target.modelPivot || {x: 0, y: 0, z: 0});
 const formatNumber = value => (Number.isFinite(value) ? value.toFixed(1) : '0.0');
 const formatVector = value => `${formatNumber(value.x)}, ${formatNumber(value.y)}, ${formatNumber(value.z)}`;
@@ -202,8 +208,8 @@ const buildDebugSnapshot = (camera, controls, renderer, vm, targetObjects, mouse
     return {
         actorCount: Array.from(targetObjects.values()).filter(object => object.visible).length,
         cameraFov: camera.fov,
-        cameraPosition: camera.position.clone(),
-        cameraTarget: controls.target.clone(),
+        cameraPosition: threeVectorToVm(camera.position),
+        cameraTarget: threeVectorToVm(controls.target),
         direction,
         followEnabled: Boolean(cameraState.follow && cameraState.follow.enabled),
         environment: {
@@ -230,11 +236,11 @@ const buildDebugSnapshot = (camera, controls, renderer, vm, targetObjects, mouse
             costume: selectedTarget.modelAssetName || selectedTarget.modelAssetId || 'None',
             name: selectedTarget.sprite && selectedTarget.sprite.name,
             pivot: pivotFromTarget(selectedTarget),
-            position: new THREE.Vector3(
-                selectedTarget.x || 0,
-                selectedTarget.y || 0,
-                selectedTarget.z || 0
-            ),
+            position: {
+                x: selectedTarget.x || 0,
+                y: selectedTarget.y || 0,
+                z: selectedTarget.z || 0
+            },
             rotation: {
                 yaw: selectedTarget.direction || 90,
                 pitch: selectedTarget.pitch || 0,
@@ -293,7 +299,7 @@ const Stage3D = ({height, vm, width}) => {
         scene.background = new THREE.Color(0x8fc6ff);
 
         const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 5000);
-        camera.position.set(260, 180, 420);
+        camera.position.copy(vectorFromState({x: 260, y: 180, z: 420}));
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
@@ -310,7 +316,7 @@ const Stage3D = ({height, vm, width}) => {
         controls.enableDamping = true;
         controls.dampingFactor = 0.08;
         controls.enablePan = false;
-        controls.target.set(0, 20, 0);
+        controls.target.copy(vectorFromState({x: 0, y: 0, z: 20}));
 
         const ambientLight = new THREE.HemisphereLight(0xffffff, 0x9bc5dd, 1.6);
         scene.add(ambientLight);
@@ -415,12 +421,6 @@ const Stage3D = ({height, vm, width}) => {
         let thirdPersonYaw = Math.atan2(camera.position.x, camera.position.z);
         let thirdPersonPitch = 0.25;
 
-        const vectorToState = value => ({
-            x: Number(value.x.toFixed(3)),
-            y: Number(value.y.toFixed(3)),
-            z: Number(value.z.toFixed(3))
-        });
-
         const commitLiveCameraState = () => {
             if (isApplyingStoredCamera || !vm || !vm.runtime) return;
             const sceneState = vm.runtime.scratch3dScene;
@@ -429,8 +429,8 @@ const Stage3D = ({height, vm, width}) => {
             const mouseState = getMouseState(vm);
             if (cameraFollow.enabled || mouseState.mode !== 'normal') return;
 
-            sceneState.camera.position = vectorToState(camera.position);
-            sceneState.camera.target = vectorToState(controls.target);
+            sceneState.camera.position = threeVectorToVm(camera.position);
+            sceneState.camera.target = threeVectorToVm(controls.target);
             if (Array.isArray(sceneState.backdrops) && sceneState.backdrops[sceneState.currentBackdrop]) {
                 sceneState.backdrops[sceneState.currentBackdrop].camera = sceneState.camera;
             }
@@ -452,7 +452,11 @@ const Stage3D = ({height, vm, width}) => {
         const getFollowPoint = (targetId, heightOffset = 35) => {
             const target = getFollowTarget(targetId);
             if (!target) return new THREE.Vector3(0, 20, 0);
-            return new THREE.Vector3(target.x || 0, (target.y || 0) + heightOffset, target.z || 0);
+            return vmVectorToThree({
+                x: target.x || 0,
+                y: target.y || 0,
+                z: (target.z || 0) + heightOffset
+            });
         };
 
         const requestPointerLock = () => {
@@ -558,7 +562,7 @@ const Stage3D = ({height, vm, width}) => {
                 movementY: e.movementY || 0,
                 x: e.clientX - rect.left,
                 y: e.clientY - rect.top,
-                z: hasWorldPoint ? worldPoint.z : 0,
+                z: hasWorldPoint ? threeVectorToVm(worldPoint).z : 0,
                 canvasWidth: rect.width,
                 canvasHeight: rect.height
             };
@@ -831,7 +835,7 @@ const Stage3D = ({height, vm, width}) => {
 
         const applyCameraState = (cameraState, forceInstant = false) => {
             const cameraPosition = vectorFromState(cameraState.position || {x: 260, y: 180, z: 420});
-            const cameraTarget = vectorFromState(cameraState.target || {x: 0, y: 20, z: 0});
+            const cameraTarget = vectorFromState(cameraState.target || {x: 0, y: 0, z: 20});
             const smoothingDuration = Math.max(0, cameraState.smoothingDuration || 0);
             const now = performance.now();
             const elapsed = now - lastCameraSmoothAt;
@@ -860,7 +864,7 @@ const Stage3D = ({height, vm, width}) => {
             fillLight.intensity = Math.max(0.2, keyLight.intensity * 0.35);
             keyLight.color.set(lightingState.keyColor || '#ffffff');
             fillLight.color.set(lightingState.keyColor || '#ffffff');
-            keyLight.position.copy(vectorFromState(lightingState.keyPosition || {x: 180, y: 320, z: 240}));
+            keyLight.position.copy(vectorFromState(lightingState.keyPosition || {x: 180, y: 240, z: 320}));
 
             if (lastSceneRevision === blockinumScene.revision) {
                 if (cameraState.follow && cameraState.follow.enabled) {

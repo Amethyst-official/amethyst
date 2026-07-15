@@ -4,6 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const scratchGuiNodeModules = path.resolve(__dirname, 'node_modules/scratch-gui/node_modules');
 const scratchBlocksMedia = path.resolve(scratchGuiNodeModules, 'scratch-blocks/media');
+const scratchGuiStatic = path.resolve(__dirname, 'node_modules/scratch-gui/static');
 
 const base = {
     mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -88,6 +89,10 @@ module.exports = [
                         from: 'node_modules/scratch-gui/src/lib/themes/blocks/high-contrast-media/blocks-media',
                         to: 'static/blocks-media/high-contrast',
                         force: true
+                    },
+                    {
+                        from: path.resolve(scratchGuiStatic, 'amethyst-models'),
+                        to: 'static/amethyst-models'
                     },
                     {
                         context: 'src-renderer-webpack/editor/gui/',

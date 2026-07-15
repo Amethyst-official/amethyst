@@ -807,7 +807,12 @@ class JSGenerator {
             this.descendedIntoModulo = false;
             const x = 'x' in node ? this.descendInput(node.x) : 'target.x';
             const y = 'y' in node ? this.descendInput(node.y) : 'target.y';
-            this.source += `target.setXY(${x}, ${y});\n`;
+            if ('z' in node) {
+                const z = this.descendInput(node.z);
+                this.source += `if (typeof target.setXYZ === "function") target.setXYZ(${x}, ${y}, ${z}); else target.setXY(${x}, ${y});\n`;
+            } else {
+                this.source += `target.setXY(${x}, ${y});\n`;
+            }
             if (this.descendedIntoModulo) {
                 this.source += `if (target.interpolationData) target.interpolationData = null;\n`;
             }

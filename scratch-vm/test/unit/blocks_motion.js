@@ -65,6 +65,27 @@ test('move sideways steps moves relative to actor direction', t => {
     t.end();
 });
 
+test('forward and sideways 3D movement stay on the X/Y ground plane', t => {
+    const rt = new Runtime();
+    const motion = new Motion(rt);
+    const sprite = new Sprite(null, rt);
+    const target = new RenderedTarget(sprite, rt);
+    const util = {target};
+
+    target.setXYZ(0, 0, 42);
+    target.setDirection(90);
+    motion.moveSteps({STEPS: 10}, util);
+    t.equal(Math.round(target.x), 10);
+    t.equal(Math.round(target.y), 0);
+    t.equal(target.z, 42);
+
+    motion.moveSidewaysSteps({STEPS: 5, DIRECTION: 'right'}, util);
+    t.equal(Math.round(target.x), 10);
+    t.equal(Math.round(target.y), -5);
+    t.equal(target.z, 42);
+    t.end();
+});
+
 test('3D model actors can move outside the old 2D stage fence', t => {
     const rt = new Runtime();
     const motion = new Motion(rt);
