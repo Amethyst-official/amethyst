@@ -128,7 +128,7 @@ class PackagerWindow extends AbstractWindow {
 
             const notice = document.createElement('div');
             notice.id = noticeId;
-            notice.textContent = 'Amethyst export is experimental. Single-file HTML is the only intended test target right now; native executable packaging still uses the old TurboWarp/Scratch packager path and is disabled until the Amethyst 3D runtime exporter is rebuilt.';
+            notice.textContent = 'Amethyst export is experimental. Single-file HTML is the only intended test target right now; native executable packaging still uses a legacy 2D packager path and is disabled until the Amethyst 3D runtime exporter is rebuilt.';
             document.body.prepend(notice);
           }
         };
@@ -218,7 +218,7 @@ class PackagerWindow extends AbstractWindow {
             const text = label.textContent || '';
             if (disabledTargets.test(text) && !/html|zip/i.test(text)) {
               label.classList.add('amethyst-packager-disabled-target');
-              label.title = 'Disabled until the Amethyst 3D runtime exporter replaces the old TurboWarp/Scratch packaging path.';
+              label.title = 'Disabled until the Amethyst 3D runtime exporter replaces the legacy 2D packaging path.';
               const input = label.querySelector('input');
               if (input) {
                 input.disabled = true;

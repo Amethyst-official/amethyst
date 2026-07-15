@@ -70,6 +70,12 @@ cd scratch-gui
 npm run build
 ```
 
+Or from the repository root:
+
+```powershell
+.\scripts\build-web.ps1
+```
+
 Build the desktop app:
 
 ```powershell
@@ -86,6 +92,24 @@ The unpacked Windows executable is created at:
 desktop\dist\win-unpacked\Amethyst.exe
 ```
 
+For a versioned paid-binary ZIP:
+
+```powershell
+.\scripts\build-release.ps1
+```
+
+That creates:
+
+```text
+releases\Amethyst-0.1.<git-commit-count>-win-x64-portable.zip
+```
+
+Use this to print the current build name:
+
+```powershell
+.\scripts\version.ps1
+```
+
 ## Project Layout
 
 ```text
@@ -96,6 +120,7 @@ scratch-render   Legacy renderer pieces still used by compatibility paths
 scratch-storage  Asset and project storage helpers
 desktop          Electron desktop shell, offline runtime packaging, desktop-only export entry points
 docs             Amethyst documentation
+scripts          Root PowerShell helpers for versioning, web builds, desktop builds, and release ZIPs
 ```
 
 ## Documentation

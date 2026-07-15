@@ -92,7 +92,7 @@ module.exports = [
                     },
                     {
                         from: path.resolve(scratchGuiStatic, 'amethyst-models'),
-                        to: 'static/amethyst-models'
+                        to: 'amethyst-models'
                     },
                     {
                         context: 'src-renderer-webpack/editor/gui/',

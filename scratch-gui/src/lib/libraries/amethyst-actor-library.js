@@ -1,5 +1,5 @@
 const root = process.env.ROUTING_STYLE === 'hash' ? './' : '/';
-const modelRoot = `${root}static/amethyst-models/`;
+const modelRoot = `${root}amethyst-models/`;
 
 const icon = (label, shape) => {
     const drawings = {

@@ -44,9 +44,10 @@ For contributors:
 
 For branding or release work:
 
-1. [Legal and Credits](legal.md)
-2. [Development Guide](development.md)
-3. [Roadmap](roadmap.md)
+1. [Build and Deploy](build-and-deploy.md)
+2. [Legal and Credits](legal.md)
+3. [Development Guide](development.md)
+4. [Roadmap](roadmap.md)
 
 ## Docs To Add Later
 

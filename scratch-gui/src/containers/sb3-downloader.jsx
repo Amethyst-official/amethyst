@@ -13,8 +13,9 @@ import log from '../lib/log';
 // from sb-file-uploader-hoc.jsx
 const getProjectTitleFromFilename = fileInputFilename => {
     if (!fileInputFilename) return '';
-    // only parse title with valid Amethyst/project extensions
-    const matches = fileInputFilename.match(/^(.*)\.(?:amx|sb[23]?)$/i);
+    // Only parse titles from Amethyst project files. Legacy VM internals still use
+    // sb3 names, but user-facing project files are .amx.
+    const matches = fileInputFilename.match(/^(.*)\.amx$/i);
     if (!matches) return '';
     return matches[1].substring(0, 100); // truncate project title to max 100 chars
 };
@@ -101,7 +102,7 @@ class SB3Downloader extends React.Component {
                     {
                         description: 'Amethyst Project',
                         accept: {
-                            'application/octet-stream': ['.amx', '.sb3']
+                            'application/octet-stream': ['.amx']
                         }
                     }
                 ],

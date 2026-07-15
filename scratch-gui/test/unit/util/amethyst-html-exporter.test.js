@@ -18,7 +18,11 @@ describe('amethyst-html-exporter', () => {
         });
 
         expect(html).toContain('<title>A &lt;weird&gt; &quot;game&quot;</title>');
-        expect(html).toContain('"projectBase64":"QUJD"');
+        expect(html).toContain('"format":"amx"');
+        expect(html).toContain('"projectEncoding":"base85-chunks"');
+        expect(html).toContain('"projectBytes":3');
+        expect(html).toContain('data-amethyst-project="');
+        expect(html).toContain('decodeProjectChunk(3)');
         expect(html).toContain('"runtimeUrl":"https://example.com/embed.html"');
         expect(html).toContain('amethyst-export-project');
         expect(html).toContain('iframe');
