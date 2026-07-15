@@ -62,6 +62,7 @@ const buildAmethystExportHTML = async ({
     projectData,
     title,
     amethystVersion = 'unknown',
+    offlineRuntime = null,
     runtimeUrl = DEFAULT_RUNTIME_URL,
     fallbackRuntimeUrl = runtimeUrl === DEFAULT_RUNTIME_URL ? null : DEFAULT_RUNTIME_URL
 }) => {
@@ -77,6 +78,9 @@ const buildAmethystExportHTML = async ({
         amethystVersion,
         title: cleanTitle,
         projectBytes,
+        offlineRuntimeHtml: offlineRuntime && offlineRuntime.html ? offlineRuntime.html : null,
+        offlineRuntimeBytes: offlineRuntime && offlineRuntime.bytes ? offlineRuntime.bytes : 0,
+        offlineRuntimeFileCount: offlineRuntime && offlineRuntime.fileCount ? offlineRuntime.fileCount : 0,
         runtimeUrl,
         fallbackRuntimeUrl,
         projectBase64
@@ -199,11 +203,11 @@ a.button.secondary {
     <div class="panel">
         <div class="brand"><span class="brand-mark"></span><span>Amethyst HTML Export</span></div>
         <div class="title">Loading ${escapeHTML(cleanTitle)}</div>
-        <div class="detail">This file contains your project and loads the Amethyst web player.</div>
-        <div class="meta">Project size: ${escapeHTML(formatBytes(projectBytes))}. Exported: ${escapeHTML(new Date().toLocaleString())}.</div>
+        <div class="detail">${offlineRuntime ? 'This file contains your project and the Amethyst player runtime. It works offline.' : 'This file contains your project and loads the Amethyst web player.'}</div>
+        <div class="meta">Project size: ${escapeHTML(formatBytes(projectBytes))}.${offlineRuntime ? ` Runtime size: ${escapeHTML(formatBytes(offlineRuntime.bytes || 0))}.` : ''} Exported: ${escapeHTML(new Date().toLocaleString())}.</div>
         <div class="actions" id="actions">
             <button id="retry" type="button">Retry</button>
-            <a class="button secondary" href="${escapeHTML(runtimeUrl)}" target="_blank" rel="noopener noreferrer">Open player</a>
+            ${offlineRuntime ? '' : `<a class="button secondary" href="${escapeHTML(runtimeUrl)}" target="_blank" rel="noopener noreferrer">Open player</a>`}
         </div>
     </div>
 </div>
@@ -221,6 +225,7 @@ a.button.secondary {
     var loaded = false;
     var runtimeIndex = 0;
     var timeoutId = null;
+    var isOfflineRuntime = !!exportData.offlineRuntimeHtml;
     var runtimeUrls = [exportData.runtimeUrl];
     if (exportData.fallbackRuntimeUrl && exportData.fallbackRuntimeUrl !== exportData.runtimeUrl) {
         runtimeUrls.push(exportData.fallbackRuntimeUrl);
@@ -266,7 +271,26 @@ a.button.secondary {
         posted = false;
         loaded = false;
         if (timeoutId) clearTimeout(timeoutId);
-        setStatus('Loading ' + exportData.title, 'This file contains your project and loads the Amethyst web player.', false);
+        setStatus(
+            'Loading ' + exportData.title,
+            isOfflineRuntime ?
+                'This file contains your project and the Amethyst player runtime. It works offline.' :
+                'This file contains your project and loads the Amethyst web player.',
+            false
+        );
+        if (isOfflineRuntime) {
+            iframe.removeAttribute('src');
+            iframe.srcdoc = exportData.offlineRuntimeHtml;
+            timeoutId = setTimeout(function () {
+                if (loaded) return;
+                setStatus(
+                    'Player did not respond',
+                    'The bundled Amethyst player did not start. Export again from a newer Amethyst Desktop build.',
+                    true
+                );
+            }, 12000);
+            return;
+        }
         setPlayerOrigin();
         iframe.src = runtimeUrls[runtimeIndex] + (runtimeUrls[runtimeIndex].indexOf('?') === -1 ? '?' : '&') +
             'amethyst_export=1&autoplay=1';

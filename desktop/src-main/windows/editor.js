@@ -25,6 +25,123 @@ const TYPE_URL = 'url';
 const TYPE_SCRATCH = 'scratch';
 const TYPE_SAMPLE = 'sample';
 
+const HTML_RUNTIME_ROOT = path.resolve(__dirname, '../../dist-renderer-webpack/editor/gui');
+const OFFLINE_RUNTIME_EXCLUDED_FILE = /\.(?:map|LICENSE\.txt)$/i;
+const MIME_TYPES = {
+  '.css': 'text/css',
+  '.gif': 'image/gif',
+  '.hex': 'application/octet-stream',
+  '.html': 'text/html',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.js': 'text/javascript',
+  '.mp3': 'audio/mpeg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.wasm': 'application/wasm',
+  '.wav': 'audio/wav',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2'
+};
+
+let offlineHTMLRuntimeCache = null;
+
+const escapeScriptText = value => String(value)
+  .replace(/<\/script/gi, '<\\/script');
+
+const getMimeType = filePath => MIME_TYPES[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
+
+const walkFiles = async directory => {
+  const entries = await fsPromises.readdir(directory, {
+    withFileTypes: true
+  });
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...await walkFiles(fullPath));
+    } else if (entry.isFile()) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+};
+
+const toRuntimePath = filePath => path.relative(HTML_RUNTIME_ROOT, filePath).replace(/\\/g, '/');
+
+const bufferToDataURL = (filePath, buffer) => (
+  `data:${getMimeType(filePath)};base64,${buffer.toString('base64')}`
+);
+
+const replaceAllLiteral = (value, search, replacement) => value.split(search).join(replacement);
+
+const patchEmbedScript = (embedScript, bundledFiles) => {
+  const chunkLoaderMarker = 'script.src = jsonpScriptSrc(chunkId);';
+  if (!embedScript.includes(chunkLoaderMarker)) {
+    throw new Error('Could not find the Amethyst player chunk loader to patch.');
+  }
+
+  let patched = embedScript.replace(
+    chunkLoaderMarker,
+    [
+      'var amethystChunkSrc = jsonpScriptSrc(chunkId);',
+      'script.src = window.AMETHYST_BUNDLED_FILES && window.AMETHYST_BUNDLED_FILES[amethystChunkSrc] ?',
+      '  window.AMETHYST_BUNDLED_FILES[amethystChunkSrc] : amethystChunkSrc;'
+    ].join('\n')
+  );
+
+  for (const [runtimePath, dataURL] of Object.entries(bundledFiles)) {
+    if (!runtimePath.endsWith('.js')) {
+      patched = replaceAllLiteral(patched, runtimePath, dataURL);
+    }
+  }
+
+  return patched;
+};
+
+const buildOfflineHTMLRuntime = async () => {
+  if (offlineHTMLRuntimeCache) {
+    return offlineHTMLRuntimeCache;
+  }
+
+  const files = await walkFiles(HTML_RUNTIME_ROOT);
+  const bundledFiles = {};
+  for (const filePath of files) {
+    const runtimePath = toRuntimePath(filePath);
+    if (
+      runtimePath === 'embed.html' ||
+      runtimePath === 'embed.js' ||
+      runtimePath === 'index.js' ||
+      OFFLINE_RUNTIME_EXCLUDED_FILE.test(runtimePath)
+    ) {
+      continue;
+    }
+
+    const buffer = await fsPromises.readFile(filePath);
+    bundledFiles[runtimePath] = bufferToDataURL(filePath, buffer);
+  }
+
+  const embedHtml = await fsPromises.readFile(path.join(HTML_RUNTIME_ROOT, 'embed.html'), 'utf8');
+  const embedScript = await fsPromises.readFile(path.join(HTML_RUNTIME_ROOT, 'embed.js'), 'utf8');
+  const patchedScript = patchEmbedScript(embedScript, bundledFiles);
+  const filesScript = `<script>window.AMETHYST_BUNDLED_FILES=${JSON.stringify(bundledFiles)};</script>`;
+  const embedScriptTag = '<script src="embed.js"></script>';
+  if (!embedHtml.includes(embedScriptTag)) {
+    throw new Error('Could not find the Amethyst player script tag to inline.');
+  }
+  const runtimeHtml = embedHtml.replace(
+    embedScriptTag,
+    `${filesScript}\n<script>${escapeScriptText(patchedScript)}</script>`
+  );
+
+  offlineHTMLRuntimeCache = {
+    html: runtimeHtml,
+    fileCount: Object.keys(bundledFiles).length + 2,
+    bytes: Buffer.byteLength(runtimeHtml, 'utf8')
+  };
+  return offlineHTMLRuntimeCache;
+};
+
 class OpenedFile {
   constructor (type, path) {
     /** @type {TYPE_FILE|TYPE_URL|TYPE_SCRATCH|TYPE_SAMPLE} */
@@ -520,6 +637,8 @@ class EditorWindow extends ProjectRunningWindow {
       PackagerWindow.forEditor(this);
     });
 
+    this.ipc.handle('get-offline-html-runtime', async () => buildOfflineHTMLRuntime());
+
     this.ipc.handle('export-html-file', async (event, suggestedName, html) => {
       if (typeof html !== 'string' || !html.trim()) {
         throw new Error('The generated HTML export was empty.');
@@ -561,7 +680,7 @@ class EditorWindow extends ProjectRunningWindow {
         type: 'info',
         title: APP_NAME,
         message: 'Exported HTML game',
-        detail: `${path.basename(filePath)} was saved successfully.\n\nThis HTML file contains the project data and loads the Amethyst web player when opened.`,
+        detail: `${path.basename(filePath)} was saved successfully.\n\nThis is a fully offline single-file HTML game. It contains the project data and the Amethyst player runtime.`,
         buttons: ['Show in Folder', 'OK'],
         defaultId: 0,
         cancelId: 1,

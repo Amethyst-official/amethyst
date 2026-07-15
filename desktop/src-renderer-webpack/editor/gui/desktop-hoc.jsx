@@ -87,6 +87,7 @@ const DesktopHOC = function (WrappedComponent) {
       };
       this.handleUpdateProjectTitle = this.handleUpdateProjectTitle.bind(this);
       this.handleExportHTML = this.handleExportHTML.bind(this);
+      this.handleGetOfflineHTMLRuntime = this.handleGetOfflineHTMLRuntime.bind(this);
       this.handleNativeExportHTML = this.handleNativeExportHTML.bind(this);
 
       // Changing locale always re-mounts this component
@@ -193,11 +194,18 @@ const DesktopHOC = function (WrappedComponent) {
     handleExportHTML (filename, html) {
       return EditorPreload.exportHTMLFile(filename, html);
     }
+    handleGetOfflineHTMLRuntime () {
+      return EditorPreload.getOfflineHTMLRuntime();
+    }
     handleNativeExportHTML () {
-      return this.props.vm.saveProjectSb3('arraybuffer')
-        .then(projectData => buildAmethystExportHTML({
+      return Promise.all([
+        this.props.vm.saveProjectSb3('arraybuffer'),
+        EditorPreload.getOfflineHTMLRuntime()
+      ])
+        .then(([projectData, offlineRuntime]) => buildAmethystExportHTML({
           projectData,
           title: this.state.title,
+          offlineRuntime,
           runtimeUrl: getLocalHTMLPlayerUrl()
         }))
         .then(html => EditorPreload.exportHTMLFile(getHTMLExportFilename(this.state.title), html))
@@ -232,6 +240,7 @@ const DesktopHOC = function (WrappedComponent) {
           onClickAddonSettings={handleClickAddonSettings}
           onClickNewWindow={handleClickNewWindow}
           exportHTMLFile={this.handleExportHTML}
+          getOfflineHTMLRuntime={this.handleGetOfflineHTMLRuntime}
           htmlExportRuntimeUrl={getLocalHTMLPlayerUrl()}
           onClickAbout={[
             {

@@ -39,11 +39,15 @@ const PackagerIntegrationHOC = function (WrappedComponent) {
                 return;
             }
 
-            this.props.vm.saveProjectSb3('arraybuffer')
-                .then(projectData => buildAmethystExportHTML({
+            Promise.all([
+                this.props.vm.saveProjectSb3('arraybuffer'),
+                this.props.getOfflineHTMLRuntime ? this.props.getOfflineHTMLRuntime() : Promise.resolve(null)
+            ])
+                .then(([projectData, offlineRuntime]) => buildAmethystExportHTML({
                     projectData,
                     title: this.props.reduxProjectTitle,
                     amethystVersion: getAmethystVersion(),
+                    offlineRuntime,
                     runtimeUrl: this.props.htmlExportRuntimeUrl || getRuntimeUrl()
                 }))
                 .then(html => {
@@ -81,6 +85,7 @@ const PackagerIntegrationHOC = function (WrappedComponent) {
     PackagerIntegrationComponent.propTypes = {
         canOpenPackager: PropTypes.bool,
         exportHTMLFile: PropTypes.func,
+        getOfflineHTMLRuntime: PropTypes.func,
         htmlExportRuntimeUrl: PropTypes.string,
         reduxProjectTitle: PropTypes.string,
         vm: PropTypes.shape({

@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('EditorPreload', {
   openNewWindow: () => ipcRenderer.invoke('open-new-window'),
   openAddonSettings: (search) => ipcRenderer.invoke('open-addon-settings', search),
   openPackager: () => ipcRenderer.invoke('open-packager'),
+  getOfflineHTMLRuntime: () => ipcRenderer.invoke('get-offline-html-runtime'),
   exportHTMLFile: (suggestedName, html) => ipcRenderer.invoke('export-html-file', suggestedName, html),
   openDesktopSettings: () => ipcRenderer.invoke('open-desktop-settings'),
   openPrivacy: () => ipcRenderer.invoke('open-privacy'),
